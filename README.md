@@ -8,8 +8,8 @@ Validation, routing, and generation tooling for [Agent Skills](https://agentskil
 |---------|-----|-------------|
 | [`@skill-tools/core`](packages/core) | `npm i @skill-tools/core` | Parser, types, tokenizer, file resolver |
 | [`skill-tools`](packages/skill-tools) | `npm i -g skill-tools` | CLI — validate, lint, score |
-| [`skillrouter`](packages/router) | `npm i skillrouter` | Semantic skill selection (TF-IDF + cosine similarity) |
-| [`skillgen`](packages/gen) | `npm i skillgen` | Generate SKILL.md from OpenAPI specs or text |
+| [`@skill-tools/router`](packages/router) | `npm i @skill-tools/router` | Semantic skill selection (TF-IDF + cosine similarity) |
+| [`@skill-tools/gen`](packages/gen) | `npm i @skill-tools/gen` | Generate SKILL.md from OpenAPI specs or text |
 
 ## Quick Start
 

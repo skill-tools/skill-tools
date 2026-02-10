@@ -1,5 +1,5 @@
 {
-  "name": "skillrouter",
+  "name": "@skill-tools/router",
   "version": "0.1.0",
   "description": "Semantic skill selection middleware for Agent Skills — embedding-based routing for large skill catalogs",
   "type": "module",

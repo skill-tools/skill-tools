@@ -1,5 +1,5 @@
 {
-	"name": "skillgen",
+	"name": "@skill-tools/gen",
 	"version": "0.1.0",
 	"description": "Generate Agent Skills (SKILL.md) from OpenAPI specs, REST APIs, and text descriptions",
 	"type": "module",
