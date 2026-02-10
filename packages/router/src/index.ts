@@ -10,6 +10,8 @@
 
 export type { BM25Options, BM25Snapshot } from './bm25/index.js';
 export { BM25Index } from './bm25/index.js';
+export type { ContextInput } from './context/extractor.js';
+export { extractContext } from './context/extractor.js';
 export type { EmbeddingConfig, EmbeddingProvider } from './embeddings/interface.js';
 export { LocalEmbeddingProvider } from './embeddings/local.js';
 export type {
