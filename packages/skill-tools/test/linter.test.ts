@@ -1,5 +1,5 @@
-import { parseSkill } from '@skill-tools/core';
 import { resolve } from 'node:path';
+import { parseSkill } from '@skill-tools/core';
 import { describe, expect, it } from 'vitest';
 import { lint } from '../src/linter.js';
 
@@ -21,9 +21,7 @@ describe('lint', () => {
 
 		const result = lint(parseResult.skill);
 
-		const specificityIssue = result.diagnostics.find(
-			(d) => d.ruleId === 'description-specificity',
-		);
+		const specificityIssue = result.diagnostics.find((d) => d.ruleId === 'description-specificity');
 		expect(specificityIssue).toBeDefined();
 	});
 
@@ -35,7 +33,7 @@ describe('lint', () => {
 
 		const secretIssue = result.diagnostics.find((d) => d.ruleId === 'no-secrets');
 		expect(secretIssue).toBeDefined();
-		expect(secretIssue!.severity).toBe('error');
+		expect(secretIssue?.severity).toBe('error');
 	});
 
 	it('reports hardcoded paths', async () => {
@@ -56,9 +54,7 @@ describe('lint', () => {
 			'description-specificity': 'off',
 		});
 
-		const specificityIssue = result.diagnostics.find(
-			(d) => d.ruleId === 'description-specificity',
-		);
+		const specificityIssue = result.diagnostics.find((d) => d.ruleId === 'description-specificity');
 		expect(specificityIssue).toBeUndefined();
 	});
 });

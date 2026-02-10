@@ -1,7 +1,7 @@
-import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
-import type { Diagnostic, Skill } from '@skill-tools/core';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import type { Diagnostic, Skill } from '@skill-tools/core';
+import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 
 /**
  * Result of validating a single skill.
@@ -54,16 +54,16 @@ export async function validate(path: string): Promise<ValidationResult[]> {
 
 	for (const location of locations) {
 		const parseResult = await parseSkill(location.skillFile);
-		const extraDiagnostics = parseResult.ok
-			? validateStructure(parseResult.skill)
-			: [];
+		const extraDiagnostics = parseResult.ok ? validateStructure(parseResult.skill) : [];
 
 		const allDiagnostics = [...parseResult.diagnostics, ...extraDiagnostics];
 		const hasErrors = allDiagnostics.some((d) => d.severity === 'error');
 
 		results.push({
 			filePath: location.skillFile,
-			name: parseResult.ok ? (parseResult.skill.metadata.name ?? location.dirName) : location.dirName,
+			name: parseResult.ok
+				? (parseResult.skill.metadata.name ?? location.dirName)
+				: location.dirName,
 			valid: !hasErrors,
 			skill: parseResult.ok ? parseResult.skill : null,
 			diagnostics: allDiagnostics,

@@ -1,8 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { generateFromOpenApi, generateFromSpec, generateFromText } from '../src/generator.js';
 import { parseOpenApi } from '../src/openapi.js';
-import { readFileSync } from 'node:fs';
 
 const FIXTURES = resolve(import.meta.dirname, 'fixtures');
 
@@ -103,10 +103,7 @@ describe('generateFromText', () => {
 	});
 
 	it('converts name to kebab-case', () => {
-		const result = generateFromText(
-			'My Cool Skill',
-			'A cool skill.',
-		);
+		const result = generateFromText('My Cool Skill', 'A cool skill.');
 
 		const [path] = Array.from(result.files.keys());
 		expect(path).toBe('my-cool-skill/SKILL.md');

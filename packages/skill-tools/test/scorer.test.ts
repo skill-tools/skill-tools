@@ -1,5 +1,5 @@
-import { parseSkill } from '@skill-tools/core';
 import { resolve } from 'node:path';
+import { parseSkill } from '@skill-tools/core';
 import { describe, expect, it } from 'vitest';
 import { score } from '../src/scorer/index.js';
 
@@ -13,10 +13,10 @@ describe('score', () => {
 		const result = score(parseResult.skill);
 
 		expect(result.score).toBeGreaterThanOrEqual(70);
-		expect(result.dimensions['description_quality']!.score).toBeGreaterThan(0);
-		expect(result.dimensions['instruction_clarity']!.score).toBeGreaterThan(0);
-		expect(result.dimensions['spec_compliance']!.score).toBe(20); // Perfect compliance
-		expect(result.dimensions['security']!.score).toBe(10); // No security issues
+		expect(result.dimensions.description_quality?.score).toBeGreaterThan(0);
+		expect(result.dimensions.instruction_clarity?.score).toBeGreaterThan(0);
+		expect(result.dimensions.spec_compliance?.score).toBe(20); // Perfect compliance
+		expect(result.dimensions.security?.score).toBe(10); // No security issues
 	});
 
 	it('scores a bad skill lower', async () => {
@@ -35,7 +35,7 @@ describe('score', () => {
 
 		const result = score(parseResult.skill);
 
-		expect(result.dimensions['security']!.score).toBeLessThan(10);
+		expect(result.dimensions.security?.score).toBeLessThan(10);
 	});
 
 	it('returns suggestions sorted by point gain', async () => {
@@ -45,8 +45,8 @@ describe('score', () => {
 		const result = score(parseResult.skill);
 
 		for (let i = 1; i < result.suggestions.length; i++) {
-			expect(result.suggestions[i]!.pointsGain).toBeLessThanOrEqual(
-				result.suggestions[i - 1]!.pointsGain,
+			expect(result.suggestions[i]?.pointsGain).toBeLessThanOrEqual(
+				result.suggestions[i - 1]?.pointsGain,
 			);
 		}
 	});

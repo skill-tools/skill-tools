@@ -33,9 +33,9 @@ export function scoreSecurityScore(skill: Skill): DimensionScore {
 	// Check for suspicious shell patterns
 	const body = skill.body;
 	const suspiciousPatterns = [
-		/\brm\s+-rf\s+\/(?!\s)/,  // rm -rf / (not followed by space)
-		/\bcurl\s+.*\|\s*(?:bash|sh)\b/,  // curl | bash
-		/\beval\s+\$/,  // eval $
+		/\brm\s+-rf\s+\/(?!\s)/, // rm -rf / (not followed by space)
+		/\bcurl\s+.*\|\s*(?:bash|sh)\b/, // curl | bash
+		/\beval\s+\$/, // eval $
 	];
 	for (const pattern of suspiciousPatterns) {
 		if (pattern.test(body)) {

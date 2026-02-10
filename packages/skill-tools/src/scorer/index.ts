@@ -58,10 +58,10 @@ function generateSuggestions(
 ): ScoreSuggestion[] {
 	const suggestions: ScoreSuggestion[] = [];
 
-	const descDim = dimensions['description_quality']!;
-	const instrDim = dimensions['instruction_clarity']!;
-	const progDim = dimensions['progressive_disclosure']!;
-	const secDim = dimensions['security']!;
+	const descDim = dimensions.description_quality!;
+	const instrDim = dimensions.instruction_clarity!;
+	const progDim = dimensions.progressive_disclosure!;
+	const secDim = dimensions.security!;
 
 	// Description suggestions
 	if (!skill.metadata.description) {

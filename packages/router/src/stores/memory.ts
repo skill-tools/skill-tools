@@ -53,28 +53,28 @@ export class MemoryVectorStore implements VectorStore {
 			throw new Error('Invalid snapshot: expected an object');
 		}
 		const obj = data as Record<string, unknown>;
-		if (obj['version'] !== 1) {
-			throw new Error(`Unsupported vector store version: ${obj['version']}`);
+		if (obj.version !== 1) {
+			throw new Error(`Unsupported vector store version: ${obj.version}`);
 		}
-		if (!Array.isArray(obj['entries'])) {
+		if (!Array.isArray(obj.entries)) {
 			throw new Error('Invalid snapshot: entries must be an array');
 		}
-		for (const entry of obj['entries'] as unknown[]) {
+		for (const entry of obj.entries as unknown[]) {
 			if (!entry || typeof entry !== 'object') {
 				throw new Error('Invalid snapshot: each entry must be an object');
 			}
 			const e = entry as Record<string, unknown>;
-			if (typeof e['id'] !== 'string') {
+			if (typeof e.id !== 'string') {
 				throw new Error('Invalid snapshot: entry id must be a string');
 			}
 			if (
-				!Array.isArray(e['vector']) ||
-				!(e['vector'] as unknown[]).every((v) => typeof v === 'number')
+				!Array.isArray(e.vector) ||
+				!(e.vector as unknown[]).every((v) => typeof v === 'number')
 			) {
 				throw new Error('Invalid snapshot: entry vector must be an array of numbers');
 			}
 		}
-		this.entries = obj['entries'] as VectorEntry[];
+		this.entries = obj.entries as VectorEntry[];
 	}
 }
 

@@ -14,7 +14,12 @@ const MAX_POINTS = 30;
 export function scoreDescriptionQuality(skill: Skill): DimensionScore {
 	const desc = skill.metadata.description;
 	if (!desc) {
-		return { score: 0, max: MAX_POINTS, label: 'Description Quality', details: 'No description provided' };
+		return {
+			score: 0,
+			max: MAX_POINTS,
+			label: 'Description Quality',
+			details: 'No description provided',
+		};
 	}
 
 	let points = 0;

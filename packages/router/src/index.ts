@@ -7,7 +7,8 @@
  * @packageDocumentation
  */
 
-export { SkillRouter } from './router.js';
+export type { EmbeddingConfig, EmbeddingProvider } from './embeddings/interface.js';
+export { LocalEmbeddingProvider } from './embeddings/local.js';
 export type {
 	ConflictGroup,
 	SelectionResult,
@@ -16,9 +17,6 @@ export type {
 	SkillRouterOptions,
 	SkillRouterSnapshot,
 } from './router.js';
-
-export { LocalEmbeddingProvider } from './embeddings/local.js';
-export type { EmbeddingConfig, EmbeddingProvider } from './embeddings/interface.js';
-
-export { MemoryVectorStore } from './stores/memory.js';
+export { SkillRouter } from './router.js';
 export type { SearchResult, VectorEntry, VectorStore } from './stores/interface.js';
+export { MemoryVectorStore } from './stores/memory.js';

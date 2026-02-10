@@ -32,8 +32,8 @@ describe('MemoryVectorStore', () => {
 
 		const results = await store.search(vec([1, 0.1, 0]), 2);
 		expect(results).toHaveLength(2);
-		expect(results[0]!.id).toBe('deploy');
-		expect(results[0]!.score).toBeGreaterThan(0.9);
+		expect(results[0]?.id).toBe('deploy');
+		expect(results[0]?.score).toBeGreaterThan(0.9);
 	});
 
 	it('respects topK limit', async () => {
@@ -46,7 +46,7 @@ describe('MemoryVectorStore', () => {
 
 		const results = await store.search(vec([1, 0, 0]), 1);
 		expect(results).toHaveLength(1);
-		expect(results[0]!.id).toBe('a');
+		expect(results[0]?.id).toBe('a');
 	});
 
 	it('applies similarity threshold', async () => {
@@ -59,7 +59,7 @@ describe('MemoryVectorStore', () => {
 		// Orthogonal vectors have cosine similarity ≈ 0
 		const results = await store.search(vec([1, 0, 0]), 10, 0.5);
 		expect(results).toHaveLength(1);
-		expect(results[0]!.id).toBe('close');
+		expect(results[0]?.id).toBe('close');
 	});
 
 	it('removes entries by ID', async () => {
@@ -75,7 +75,7 @@ describe('MemoryVectorStore', () => {
 
 		const results = await store.search(vec([1, 0]), 10);
 		expect(results).toHaveLength(1);
-		expect(results[0]!.id).toBe('b');
+		expect(results[0]?.id).toBe('b');
 	});
 
 	it('serializes and deserializes', async () => {
@@ -93,8 +93,8 @@ describe('MemoryVectorStore', () => {
 		expect(restored.size()).toBe(2);
 
 		const results = await restored.search(vec([1, 0, 0]), 1);
-		expect(results[0]!.id).toBe('x');
-		expect(results[0]!.metadata).toEqual({ foo: 'bar' });
+		expect(results[0]?.id).toBe('x');
+		expect(results[0]?.metadata).toEqual({ foo: 'bar' });
 	});
 
 	it('throws on unsupported version during deserialize', () => {
@@ -122,7 +122,7 @@ describe('MemoryVectorStore', () => {
 		]);
 
 		const [result] = await store.search(vec([1, 0]), 1);
-		expect(result!.metadata).toEqual({
+		expect(result?.metadata).toEqual({
 			description: 'Deploy to Vercel',
 			path: '/skills/deploy',
 		});

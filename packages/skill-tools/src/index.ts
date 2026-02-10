@@ -4,17 +4,6 @@
  * @packageDocumentation
  */
 
-export { validate } from './validator.js';
-export type { ValidationResult } from './validator.js';
-
-export { lint, parseRulesConfig } from './linter.js';
-export type { LintResult } from './linter.js';
-
-export { score } from './scorer/index.js';
-
-export { builtinRules, recommendedConfig } from './rules/index.js';
-export type { RuleConfig, RuleDefinition, RulesConfig } from './rules/index.js';
-
 // Re-export core types for convenience
 export type {
 	Diagnostic,
@@ -26,3 +15,11 @@ export type {
 	Skill,
 	SkillMetadata,
 } from '@skill-tools/core';
+export type { LintResult } from './linter.js';
+
+export { lint, parseRulesConfig } from './linter.js';
+export type { RuleConfig, RuleDefinition, RulesConfig } from './rules/index.js';
+export { builtinRules, recommendedConfig } from './rules/index.js';
+export { score } from './scorer/index.js';
+export type { ValidationResult } from './validator.js';
+export { validate } from './validator.js';

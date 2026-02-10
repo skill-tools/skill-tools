@@ -6,20 +6,18 @@ const FIXTURES = resolve(import.meta.dirname, 'fixtures');
 
 describe('resolveSkillFiles', () => {
 	it('resolves a single SKILL.md file', async () => {
-		const locations = await resolveSkillFiles(
-			resolve(FIXTURES, 'valid-skill/SKILL.md'),
-		);
+		const locations = await resolveSkillFiles(resolve(FIXTURES, 'valid-skill/SKILL.md'));
 
 		expect(locations).toHaveLength(1);
-		expect(locations[0]!.dirName).toBe('valid-skill');
-		expect(locations[0]!.skillFile).toContain('SKILL.md');
+		expect(locations[0]?.dirName).toBe('valid-skill');
+		expect(locations[0]?.skillFile).toContain('SKILL.md');
 	});
 
 	it('resolves a directory containing SKILL.md', async () => {
 		const locations = await resolveSkillFiles(resolve(FIXTURES, 'valid-skill'));
 
 		expect(locations).toHaveLength(1);
-		expect(locations[0]!.dirName).toBe('valid-skill');
+		expect(locations[0]?.dirName).toBe('valid-skill');
 	});
 
 	it('resolves multiple skills from parent directory', async () => {

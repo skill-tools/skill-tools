@@ -11,8 +11,7 @@ const DEFAULT_MAX_LINES = 500;
  */
 export const progressiveDisclosure: RuleDefinition = {
 	id: 'progressive-disclosure',
-	description:
-		'Large SKILL.md files should use references/ or scripts/ to keep the main file lean',
+	description: 'Large SKILL.md files should use references/ or scripts/ to keep the main file lean',
 	defaultSeverity: 'warning',
 
 	check(skill: Skill): Diagnostic[] {

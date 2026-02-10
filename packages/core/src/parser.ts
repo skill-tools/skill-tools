@@ -1,7 +1,7 @@
-import matter from 'gray-matter';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
+import matter from 'gray-matter';
 import { countTokens } from './tokenizer.js';
 import type {
 	Diagnostic,
@@ -17,8 +17,7 @@ import type {
  * Matches paths like `scripts/foo.sh`, `references/bar.md`, `assets/img.png`.
  * Intentionally narrow to avoid false positives on URLs or code snippets.
  */
-const FILE_REFERENCE_PATTERN =
-	/(?:^|\s|`)((?:scripts|references|assets)\/[\w./-]+(?:\.\w+)?)/gm;
+const FILE_REFERENCE_PATTERN = /(?:^|\s|`)((?:scripts|references|assets)\/[\w./-]+(?:\.\w+)?)/gm;
 
 /**
  * Pattern for matching markdown links to local files.
@@ -139,7 +138,9 @@ export function parseSkillContent(
 
 	// Check frontmatter existence — use raw content check since gray-matter's
 	// .matter property can be unreliable across successive calls
-	const hasFrontmatter = rawContent.trimStart().startsWith('---') && Object.keys(parsed.data as Record<string, unknown>).length > 0;
+	const hasFrontmatter =
+		rawContent.trimStart().startsWith('---') &&
+		Object.keys(parsed.data as Record<string, unknown>).length > 0;
 	if (!hasFrontmatter) {
 		diagnostics.push({
 			ruleId: 'frontmatter-required',
@@ -156,7 +157,7 @@ export function parseSkillContent(
 	const data = parsed.data as Record<string, unknown>;
 
 	// Validate name (REQUIRED per agentskills.io spec)
-	if (data['name'] != null && typeof data['name'] !== 'string') {
+	if (data.name != null && typeof data.name !== 'string') {
 		diagnostics.push({
 			ruleId: 'name-type',
 			severity: 'error',
@@ -166,7 +167,10 @@ export function parseSkillContent(
 			fix: 'Ensure the name is a string: name: my-skill-name',
 		});
 		hasErrors = true;
-	} else if (data['name'] == null || (typeof data['name'] === 'string' && data['name'].trim().length === 0)) {
+	} else if (
+		data.name == null ||
+		(typeof data.name === 'string' && data.name.trim().length === 0)
+	) {
 		diagnostics.push({
 			ruleId: 'name-required',
 			severity: 'error',
@@ -176,32 +180,36 @@ export function parseSkillContent(
 			fix: 'Add a name field: name: my-skill-name',
 		});
 		hasErrors = true;
-	} else if (typeof data['name'] === 'string') {
-		if (!NAME_PATTERN.test(data['name'])) {
+	} else if (typeof data.name === 'string') {
+		if (!NAME_PATTERN.test(data.name)) {
 			diagnostics.push({
 				ruleId: 'name-format',
 				severity: 'error',
-				message: `Skill name "${data['name']}" is invalid. Must be 1-64 chars, lowercase letters, numbers, and hyphens only. Must not start or end with a hyphen`,
+				message: `Skill name "${data.name}" is invalid. Must be 1-64 chars, lowercase letters, numbers, and hyphens only. Must not start or end with a hyphen`,
 				file: filePath,
 				line: 1,
-				fix: `Use a name like: ${String(data['name']).toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`,
+				fix: `Use a name like: ${String(data.name)
+					.toLowerCase()
+					.replace(/[^a-z0-9-]/g, '-')
+					.replace(/-+/g, '-')
+					.replace(/^-|-$/g, '')}`,
 			});
 			hasErrors = true;
-		} else if (CONSECUTIVE_HYPHENS.test(data['name'])) {
+		} else if (CONSECUTIVE_HYPHENS.test(data.name)) {
 			diagnostics.push({
 				ruleId: 'name-format',
 				severity: 'error',
-				message: `Skill name "${data['name']}" contains consecutive hyphens (--), which is not allowed`,
+				message: `Skill name "${data.name}" contains consecutive hyphens (--), which is not allowed`,
 				file: filePath,
 				line: 1,
-				fix: `Replace consecutive hyphens with single hyphens: ${data['name'].replace(/--+/g, '-')}`,
+				fix: `Replace consecutive hyphens with single hyphens: ${data.name.replace(/--+/g, '-')}`,
 			});
 			hasErrors = true;
 		}
 	}
 
 	// Validate description (REQUIRED per agentskills.io spec)
-	if (data['description'] != null && typeof data['description'] !== 'string') {
+	if (data.description != null && typeof data.description !== 'string') {
 		diagnostics.push({
 			ruleId: 'description-type',
 			severity: 'error',
@@ -211,7 +219,10 @@ export function parseSkillContent(
 			fix: 'Ensure the description is a string: description: "A clear description"',
 		});
 		hasErrors = true;
-	} else if (data['description'] == null || (typeof data['description'] === 'string' && data['description'].trim().length === 0)) {
+	} else if (
+		data.description == null ||
+		(typeof data.description === 'string' && data.description.trim().length === 0)
+	) {
 		diagnostics.push({
 			ruleId: 'description-required',
 			severity: 'error',
@@ -221,8 +232,8 @@ export function parseSkillContent(
 			fix: 'Add a description: description: "What this skill does and when to use it"',
 		});
 		hasErrors = true;
-	} else if (typeof data['description'] === 'string') {
-		const descLen = data['description'].length;
+	} else if (typeof data.description === 'string') {
+		const descLen = data.description.length;
 		if (descLen < 10) {
 			diagnostics.push({
 				ruleId: 'description-length',
@@ -295,9 +306,9 @@ export function parseSkillContent(
 	const knownFields = ['name', 'description', 'version'];
 	const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
 	const metadata: SkillMetadata = {
-		...(typeof data['name'] === 'string' ? { name: data['name'] } : {}),
-		...(typeof data['description'] === 'string' ? { description: data['description'] } : {}),
-		...(data['version'] != null ? { version: String(data['version']) } : {}),
+		...(typeof data.name === 'string' ? { name: data.name } : {}),
+		...(typeof data.description === 'string' ? { description: data.description } : {}),
+		...(data.version != null ? { version: String(data.version) } : {}),
 		...Object.fromEntries(
 			Object.entries(data).filter(([k]) => !knownFields.includes(k) && !dangerousKeys.has(k)),
 		),
@@ -395,18 +406,15 @@ function extractFileReferences(
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i]!;
-		let match: RegExpExecArray | null;
-
 		// Match directory-prefixed paths: scripts/, references/, assets/
-		FILE_REFERENCE_PATTERN.lastIndex = 0;
-		while ((match = FILE_REFERENCE_PATTERN.exec(line)) !== null) {
-			const refPath = match[1]!;
+		for (const m of line.matchAll(FILE_REFERENCE_PATTERN)) {
+			const refPath = m[1]!;
 			if (seen.has(refPath)) continue;
 			seen.add(refPath);
 
 			const absoluteRefPath = resolve(dirPath, refPath);
 			// Guard against path traversal — reference must stay within skill directory
-			if (!absoluteRefPath.startsWith(resolve(dirPath) + '/')) continue;
+			if (!absoluteRefPath.startsWith(`${resolve(dirPath)}/`)) continue;
 			references.push({
 				path: refPath,
 				line: i + 1,
@@ -415,16 +423,15 @@ function extractFileReferences(
 		}
 
 		// Match markdown links to local files: [text](local-file.md)
-		MARKDOWN_LINK_PATTERN.lastIndex = 0;
-		while ((match = MARKDOWN_LINK_PATTERN.exec(line)) !== null) {
-			const refPath = match[2]!;
+		for (const m of line.matchAll(MARKDOWN_LINK_PATTERN)) {
+			const refPath = m[2]!;
 			// Skip anchors, data URIs, and already-seen paths
 			if (refPath.startsWith('#') || refPath.startsWith('data:') || seen.has(refPath)) continue;
 			seen.add(refPath);
 
 			const absoluteRefPath = resolve(dirPath, refPath);
 			// Guard against path traversal — reference must stay within skill directory
-			if (!absoluteRefPath.startsWith(resolve(dirPath) + '/')) continue;
+			if (!absoluteRefPath.startsWith(`${resolve(dirPath)}/`)) continue;
 			references.push({
 				path: refPath,
 				line: i + 1,

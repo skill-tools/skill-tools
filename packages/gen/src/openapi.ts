@@ -107,14 +107,14 @@ function deref(doc: OpenApiDoc, obj: Record<string, unknown>): Record<string, un
 function extractServers(doc: OpenApiDoc): string[] {
 	const servers = doc.servers;
 	if (!Array.isArray(servers)) return [];
-	return servers
-		.map((s: Record<string, unknown>) => s.url as string)
-		.filter(Boolean);
+	return servers.map((s: Record<string, unknown>) => s.url as string).filter(Boolean);
 }
 
 function extractAuthSchemes(doc: OpenApiDoc): AuthScheme[] {
 	const components = doc.components as Record<string, unknown> | undefined;
-	const schemes = components?.securitySchemes as Record<string, Record<string, unknown>> | undefined;
+	const schemes = components?.securitySchemes as
+		| Record<string, Record<string, unknown>>
+		| undefined;
 	if (!schemes) return [];
 
 	return Object.entries(schemes).map(([name, raw]) => {
@@ -140,9 +140,7 @@ function extractEndpoints(doc: OpenApiDoc): ApiEndpoint[] {
 		const resolved = deref(doc, pathItem);
 		// Path-level parameters
 		const pathParams = Array.isArray(resolved.parameters)
-			? (resolved.parameters as Record<string, unknown>[]).map((p) =>
-					extractParameter(doc, p),
-				)
+			? (resolved.parameters as Record<string, unknown>[]).map((p) => extractParameter(doc, p))
 			: [];
 
 		for (const method of httpMethods) {
@@ -150,9 +148,7 @@ function extractEndpoints(doc: OpenApiDoc): ApiEndpoint[] {
 			if (!operation) continue;
 
 			const opParams = Array.isArray(operation.parameters)
-				? (operation.parameters as Record<string, unknown>[]).map((p) =>
-						extractParameter(doc, p),
-					)
+				? (operation.parameters as Record<string, unknown>[]).map((p) => extractParameter(doc, p))
 				: [];
 
 			// Merge path-level and operation-level params (operation wins on conflict)
@@ -164,7 +160,10 @@ function extractEndpoints(doc: OpenApiDoc): ApiEndpoint[] {
 				? extractRequestBody(doc, deref(doc, operation.requestBody as Record<string, unknown>))
 				: undefined;
 
-			const responses = extractResponses(doc, operation.responses as Record<string, unknown> | undefined);
+			const responses = extractResponses(
+				doc,
+				operation.responses as Record<string, unknown> | undefined,
+			);
 
 			endpoints.push({
 				method: method.toUpperCase(),
@@ -172,9 +171,7 @@ function extractEndpoints(doc: OpenApiDoc): ApiEndpoint[] {
 				operationId: operation.operationId as string | undefined,
 				summary: operation.summary as string | undefined,
 				description: operation.description as string | undefined,
-				tags: Array.isArray(operation.tags)
-					? (operation.tags as string[])
-					: [],
+				tags: Array.isArray(operation.tags) ? (operation.tags as string[]) : [],
 				parameters: Array.from(paramMap.values()),
 				requestBody,
 				responses,
@@ -187,9 +184,7 @@ function extractEndpoints(doc: OpenApiDoc): ApiEndpoint[] {
 
 function extractParameter(doc: OpenApiDoc, raw: Record<string, unknown>): ApiParameter {
 	const param = deref(doc, raw);
-	const schema = param.schema
-		? deref(doc, param.schema as Record<string, unknown>)
-		: {};
+	const schema = param.schema ? deref(doc, param.schema as Record<string, unknown>) : {};
 
 	return {
 		name: (param.name as string) ?? '',
@@ -209,16 +204,13 @@ function extractRequestBody(
 	if (!content) return undefined;
 
 	// Prefer application/json, fall back to first content type
-	const contentType =
-		'application/json' in content ? 'application/json' : Object.keys(content)[0];
+	const contentType = 'application/json' in content ? 'application/json' : Object.keys(content)[0];
 	if (!contentType) return undefined;
 
 	const mediaType = content[contentType];
 	if (!mediaType) return undefined;
 
-	const schema = mediaType.schema
-		? deref(doc, mediaType.schema as Record<string, unknown>)
-		: {};
+	const schema = mediaType.schema ? deref(doc, mediaType.schema as Record<string, unknown>) : {};
 
 	return {
 		description: body.description as string | undefined,
@@ -263,9 +255,7 @@ function extractResponses(
 		let properties: ApiProperty[] = [];
 
 		if (content) {
-			contentType = 'application/json' in content
-				? 'application/json'
-				: Object.keys(content)[0];
+			contentType = 'application/json' in content ? 'application/json' : Object.keys(content)[0];
 
 			if (contentType && content[contentType]) {
 				const mediaType = content[contentType]!;

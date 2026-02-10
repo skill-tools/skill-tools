@@ -9,9 +9,9 @@
  */
 
 export { parseSkill, parseSkillContent } from './parser.js';
+export type { SkillLocation } from './resolver.js';
 export { resolveSkillFiles } from './resolver.js';
 export { countTokens } from './tokenizer.js';
-
 export type {
 	Diagnostic,
 	DiagnosticSeverity,
@@ -24,5 +24,3 @@ export type {
 	SkillMetadata,
 	SkillSection,
 } from './types.js';
-
-export type { SkillLocation } from './resolver.js';

@@ -35,8 +35,8 @@ describe('parseSkill', () => {
 
 		expect(result.ok).toBe(false);
 		expect(result.diagnostics).toHaveLength(1);
-		expect(result.diagnostics[0]!.ruleId).toBe('file-readable');
-		expect(result.diagnostics[0]!.severity).toBe('error');
+		expect(result.diagnostics[0]?.ruleId).toBe('file-readable');
+		expect(result.diagnostics[0]?.severity).toBe('error');
 	});
 
 	it('reports invalid name format', async () => {
@@ -45,7 +45,7 @@ describe('parseSkill', () => {
 		expect(result.ok).toBe(false);
 		const nameError = result.diagnostics.find((d) => d.ruleId === 'name-format');
 		expect(nameError).toBeDefined();
-		expect(nameError!.severity).toBe('error');
+		expect(nameError?.severity).toBe('error');
 	});
 
 	it('reports error for missing description', async () => {
@@ -54,7 +54,7 @@ describe('parseSkill', () => {
 		expect(result.ok).toBe(false);
 		const descError = result.diagnostics.find((d) => d.ruleId === 'description-required');
 		expect(descError).toBeDefined();
-		expect(descError!.severity).toBe('error');
+		expect(descError?.severity).toBe('error');
 	});
 
 	it('detects broken file references', async () => {
@@ -67,9 +67,7 @@ describe('parseSkill', () => {
 
 		// The existing script should NOT trigger an error
 		if (result.ok) {
-			const existingRef = result.skill.fileReferences.find(
-				(r) => r.path === 'scripts/existing.sh',
-			);
+			const existingRef = result.skill.fileReferences.find((r) => r.path === 'scripts/existing.sh');
 			expect(existingRef?.exists).toBe(true);
 		}
 	});
@@ -108,7 +106,7 @@ Do the thing.
 		expect(result.skill.metadata.name).toBe('test-skill');
 		expect(result.skill.metadata.description).toBe('A test skill for parsing');
 		expect(result.skill.sections).toHaveLength(1);
-		expect(result.skill.sections[0]!.heading).toBe('Instructions');
+		expect(result.skill.sections[0]?.heading).toBe('Instructions');
 	});
 
 	it('fails on empty content', () => {
@@ -146,7 +144,7 @@ ${bigBody}
 		expect(result.ok).toBe(true);
 		const tokenWarning = result.diagnostics.find((d) => d.ruleId === 'token-budget');
 		expect(tokenWarning).toBeDefined();
-		expect(tokenWarning!.severity).toBe('warning');
+		expect(tokenWarning?.severity).toBe('warning');
 	});
 
 	it('warns for too-short description', () => {
@@ -161,7 +159,7 @@ Body.
 
 		const descWarning = result.diagnostics.find((d) => d.ruleId === 'description-length');
 		expect(descWarning).toBeDefined();
-		expect(descWarning!.severity).toBe('warning');
+		expect(descWarning?.severity).toBe('warning');
 	});
 
 	it('errors for too-long description (>1024 chars)', () => {
@@ -178,7 +176,7 @@ Body.
 		expect(result.ok).toBe(false);
 		const descError = result.diagnostics.find((d) => d.ruleId === 'description-length');
 		expect(descError).toBeDefined();
-		expect(descError!.severity).toBe('error');
+		expect(descError?.severity).toBe('error');
 	});
 
 	it('preserves extra metadata fields', () => {
@@ -218,7 +216,7 @@ Body.
 		expect(result.ok).toBe(false);
 		const nameError = result.diagnostics.find((d) => d.ruleId === 'name-required');
 		expect(nameError).toBeDefined();
-		expect(nameError!.severity).toBe('error');
+		expect(nameError?.severity).toBe('error');
 	});
 
 	it('errors for consecutive hyphens in name', () => {

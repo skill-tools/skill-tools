@@ -200,9 +200,7 @@ export class SkillRouter {
 			);
 
 			// Filter to only other skills above threshold
-			const similar = results
-				.filter((r) => r.id !== name && r.score >= threshold)
-				.map((r) => r.id);
+			const similar = results.filter((r) => r.id !== name && r.score >= threshold).map((r) => r.id);
 
 			if (similar.length > 0) {
 				// Check if this group already exists

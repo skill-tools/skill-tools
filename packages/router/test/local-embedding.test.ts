@@ -19,7 +19,7 @@ describe('LocalEmbeddingProvider', () => {
 		const provider = new LocalEmbeddingProvider(64);
 		const [vector] = await provider.embed(['run all the unit tests']);
 
-		const magnitude = Math.sqrt(vector!.reduce((sum, v) => sum + v * v, 0));
+		const magnitude = Math.sqrt(vector?.reduce((sum, v) => sum + v * v, 0));
 		// Normalized vector should have magnitude ≈ 1
 		expect(magnitude).toBeCloseTo(1.0, 4);
 	});
@@ -28,17 +28,13 @@ describe('LocalEmbeddingProvider', () => {
 		const provider = new LocalEmbeddingProvider(64);
 		const [vector] = await provider.embed(['']);
 
-		const sum = vector!.reduce((s, v) => s + Math.abs(v), 0);
+		const sum = vector?.reduce((s, v) => s + Math.abs(v), 0);
 		expect(sum).toBe(0);
 	});
 
 	it('embeds multiple texts in batch', async () => {
 		const provider = new LocalEmbeddingProvider(64);
-		const vectors = await provider.embed([
-			'deploy application',
-			'run tests',
-			'fix bug',
-		]);
+		const vectors = await provider.embed(['deploy application', 'run tests', 'fix bug']);
 
 		expect(vectors).toHaveLength(3);
 		for (const v of vectors) {

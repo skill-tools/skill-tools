@@ -1,23 +1,27 @@
 import { describe, expect, it } from 'vitest';
+import type { SkillEntry } from '../src/router.js';
 import { SkillRouter } from '../src/router.js';
-import type { SkillEntry, SkillRouterSnapshot } from '../src/router.js';
 
 const SAMPLE_SKILLS: SkillEntry[] = [
 	{
 		name: 'deploy-vercel',
-		description: 'Deploy applications to Vercel. Use when the user wants to push code to production on Vercel.',
+		description:
+			'Deploy applications to Vercel. Use when the user wants to push code to production on Vercel.',
 	},
 	{
 		name: 'deploy-aws',
-		description: 'Deploy applications to AWS. Use when the user wants to push code to production on Amazon Web Services.',
+		description:
+			'Deploy applications to AWS. Use when the user wants to push code to production on Amazon Web Services.',
 	},
 	{
 		name: 'run-tests',
-		description: 'Execute unit tests, integration tests, and end-to-end test suites with coverage reporting.',
+		description:
+			'Execute unit tests, integration tests, and end-to-end test suites with coverage reporting.',
 	},
 	{
 		name: 'lint-code',
-		description: 'Run ESLint, Biome, or Prettier to check and fix code formatting and style issues.',
+		description:
+			'Run ESLint, Biome, or Prettier to check and fix code formatting and style issues.',
 	},
 	{
 		name: 'database-migrate',
@@ -131,7 +135,7 @@ describe('SkillRouter', () => {
 		]);
 
 		const results = await router.select('run tests', { topK: 1 });
-		expect(results[0]!.metadata).toMatchObject({
+		expect(results[0]?.metadata).toMatchObject({
 			description: 'Run tests',
 			path: '/path/to/skill',
 			custom: 'data',
@@ -217,9 +221,7 @@ describe('SkillRouter', () => {
 			},
 		});
 
-		await router.indexSkills([
-			{ name: 'test', description: 'Test skill' },
-		]);
+		await router.indexSkills([{ name: 'test', description: 'Test skill' }]);
 
 		expect(embedCalled).toBe(true);
 	});

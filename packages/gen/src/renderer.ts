@@ -13,10 +13,7 @@ import type {
  * In "unified" mode, produces a single SKILL.md covering the entire API.
  * In "per-endpoint" mode, produces one SKILL.md per endpoint.
  */
-export function renderSkillMd(
-	spec: ApiSpec,
-	options: GenerateOptions = {},
-): Map<string, string> {
+export function renderSkillMd(spec: ApiSpec, options: GenerateOptions = {}): Map<string, string> {
 	const mode = options.mode ?? 'unified';
 	const files = new Map<string, string>();
 
@@ -26,10 +23,9 @@ export function renderSkillMd(
 		files.set(`${name}/SKILL.md`, content);
 	} else {
 		for (const endpoint of spec.endpoints) {
-			const epName =
-				endpoint.operationId
-					? toKebabCase(endpoint.operationId)
-					: toKebabCase(`${endpoint.method}-${endpoint.path}`);
+			const epName = endpoint.operationId
+				? toKebabCase(endpoint.operationId)
+				: toKebabCase(`${endpoint.method}-${endpoint.path}`);
 			const content = renderSingleEndpoint(spec, endpoint, {
 				...options,
 				name: epName,
@@ -51,10 +47,7 @@ function renderUnified(spec: ApiSpec, options: GenerateOptions): string {
 	// Frontmatter
 	lines.push('---');
 	lines.push(`name: ${options.name}`);
-	lines.push(
-		`description: >-`,
-		`  ${options.description ?? buildUnifiedDescription(spec)}`,
-	);
+	lines.push(`description: >-`, `  ${options.description ?? buildUnifiedDescription(spec)}`);
 	lines.push('---');
 	lines.push('');
 
@@ -258,9 +251,7 @@ function renderAuth(auth: readonly AuthScheme[]): string {
 	return lines.join('\n');
 }
 
-function groupByTag(
-	endpoints: readonly ApiEndpoint[],
-): Map<string, ApiEndpoint[]> {
+function groupByTag(endpoints: readonly ApiEndpoint[]): Map<string, ApiEndpoint[]> {
 	const grouped = new Map<string, ApiEndpoint[]>();
 
 	for (const ep of endpoints) {
@@ -293,16 +284,14 @@ function renderEndpointSection(ep: ApiEndpoint): string {
 
 	// Request body
 	if (ep.requestBody) {
-		lines.push('**Request body** (`' + ep.requestBody.contentType + '`):');
+		lines.push(`**Request body** (\`${ep.requestBody.contentType}\`):`);
 		lines.push('');
 		lines.push(renderPropertiesTable(ep.requestBody.properties));
 		lines.push('');
 	}
 
 	// Compact response summary
-	const successResponse = ep.responses.find(
-		(r) => r.statusCode.startsWith('2'),
-	);
+	const successResponse = ep.responses.find((r) => r.statusCode.startsWith('2'));
 	if (successResponse) {
 		lines.push(
 			`**Response:** ${successResponse.statusCode} — ${successResponse.description ?? 'Success'}`,
@@ -319,9 +308,7 @@ function renderParametersTable(ep: ApiEndpoint): string {
 	for (const param of ep.parameters) {
 		const req = param.required ? 'Yes' : 'No';
 		const desc = param.description ?? '';
-		lines.push(
-			`| \`${param.name}\` | ${param.in} | ${param.type ?? '-'} | ${req} | ${desc} |`,
-		);
+		lines.push(`| \`${param.name}\` | ${param.in} | ${param.type ?? '-'} | ${req} | ${desc} |`);
 	}
 	return lines.join('\n');
 }
@@ -448,7 +435,9 @@ function renderEndpointErrorHandling(ep: ApiEndpoint): string {
 		lines.push('Possible errors:');
 		lines.push('');
 		for (const resp of errorResponses) {
-			lines.push(`- **${resp.statusCode}**: ${resp.description ?? httpStatusDescription(resp.statusCode)}`);
+			lines.push(
+				`- **${resp.statusCode}**: ${resp.description ?? httpStatusDescription(resp.statusCode)}`,
+			);
 		}
 	} else {
 		lines.push('- Check authentication credentials if you receive a 401/403');

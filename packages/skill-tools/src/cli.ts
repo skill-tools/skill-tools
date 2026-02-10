@@ -39,7 +39,11 @@ program
 	.description('Lint SKILL.md files for quality issues beyond spec compliance')
 	.argument('<path>', 'Path to SKILL.md file, skill directory, or directory of skills')
 	.option('-f, --format <format>', 'Output format: text or json', 'text')
-	.option('--fail-on <severity>', 'Fail if any diagnostic has this severity or higher: error, warning, info', 'error')
+	.option(
+		'--fail-on <severity>',
+		'Fail if any diagnostic has this severity or higher: error, warning, info',
+		'error',
+	)
 	.action(async (path: string, opts: { format: string; failOn: string }) => {
 		const locations = await resolveSkillFiles(path);
 
@@ -53,7 +57,9 @@ program
 		for (const location of locations) {
 			const parseResult = await parseSkill(location.skillFile);
 			if (!parseResult.ok) {
-				console.error(`Failed to parse ${location.skillFile}: ${parseResult.diagnostics.map((d) => d.message).join(', ')}`);
+				console.error(
+					`Failed to parse ${location.skillFile}: ${parseResult.diagnostics.map((d) => d.message).join(', ')}`,
+				);
 				continue;
 			}
 			results.push(lint(parseResult.skill));
@@ -63,9 +69,7 @@ program
 		console.log(output);
 
 		const failSeverities = getFailSeverities(opts.failOn);
-		const hasFails = results.some((r) =>
-			r.diagnostics.some((d) => failSeverities.has(d.severity)),
-		);
+		const hasFails = results.some((r) => r.diagnostics.some((d) => failSeverities.has(d.severity)));
 		process.exitCode = hasFails ? 1 : 0;
 	});
 
@@ -99,7 +103,9 @@ program
 		for (const location of locations) {
 			const parseResult = await parseSkill(location.skillFile);
 			if (!parseResult.ok) {
-				console.error(`Failed to parse ${location.skillFile}: ${parseResult.diagnostics.map((d) => d.message).join(', ')}`);
+				console.error(
+					`Failed to parse ${location.skillFile}: ${parseResult.diagnostics.map((d) => d.message).join(', ')}`,
+				);
 				anyBelowMin = true;
 				continue;
 			}
@@ -180,7 +186,6 @@ function getFailSeverities(failOn: string): Set<string> {
 			return new Set(['error', 'warning', 'info']);
 		case 'warning':
 			return new Set(['error', 'warning']);
-		case 'error':
 		default:
 			return new Set(['error']);
 	}

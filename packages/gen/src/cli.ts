@@ -24,7 +24,7 @@ program
 	.option('--no-error-handling', 'Exclude error handling section')
 	.option('-d, --description <desc>', 'Custom description override')
 	.action(async (specPath: string, opts: Record<string, unknown>) => {
-		const maxTokens = Number(opts['maxTokens']);
+		const maxTokens = Number(opts.maxTokens);
 		if (Number.isNaN(maxTokens) || maxTokens < 0) {
 			console.error('Error: --max-tokens must be a positive number');
 			process.exitCode = 1;
@@ -32,13 +32,13 @@ program
 		}
 
 		const options: GenerateOptions = {
-			name: opts['name'] as string | undefined,
-			outDir: opts['out'] as string,
-			mode: opts['mode'] as 'unified' | 'per-endpoint',
+			name: opts.name as string | undefined,
+			outDir: opts.out as string,
+			mode: opts.mode as 'unified' | 'per-endpoint',
 			maxTokens,
-			includeExamples: opts['examples'] !== false,
-			includeErrorHandling: opts['errorHandling'] !== false,
-			description: opts['description'] as string | undefined,
+			includeExamples: opts.examples !== false,
+			includeErrorHandling: opts.errorHandling !== false,
+			description: opts.description as string | undefined,
 		};
 
 		const result = await generateFromOpenApi(resolve(specPath), options);
@@ -81,13 +81,9 @@ program
 	.option('-o, --out <dir>', 'Output directory', '.')
 	.option('-i, --instructions <text>', 'Additional instructions to include')
 	.action(async (name: string, description: string, opts: Record<string, unknown>) => {
-		const result = generateFromText(
-			name,
-			description,
-			opts['instructions'] as string | undefined,
-		);
+		const result = generateFromText(name, description, opts.instructions as string | undefined);
 
-		const outDir = resolve((opts['out'] as string) ?? '.');
+		const outDir = resolve((opts.out as string) ?? '.');
 
 		for (const [filePath, content] of result.files) {
 			const fullPath = safeResolvePath(outDir, filePath);
@@ -107,7 +103,7 @@ program
 function safeResolvePath(baseDir: string, filePath: string): string {
 	const resolved = resolve(baseDir, filePath);
 	const normalizedBase = resolve(baseDir);
-	if (!resolved.startsWith(normalizedBase + '/') && resolved !== normalizedBase) {
+	if (!resolved.startsWith(`${normalizedBase}/`) && resolved !== normalizedBase) {
 		throw new Error(`Path traversal detected: "${filePath}" escapes output directory`);
 	}
 	return resolved;

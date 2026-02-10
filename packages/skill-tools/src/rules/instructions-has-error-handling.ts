@@ -14,8 +14,9 @@ export const instructionsHasErrorHandling: RuleDefinition = {
 		const diagnostics: Diagnostic[] = [];
 		const body = skill.body.toLowerCase();
 
-		const hasErrorSection =
-			/#{1,3}\s+(?:error|troubleshoot|fail|issue|problem|debug)/i.test(skill.body);
+		const hasErrorSection = /#{1,3}\s+(?:error|troubleshoot|fail|issue|problem|debug)/i.test(
+			skill.body,
+		);
 
 		const hasErrorKeywords =
 			/\b(?:error|fail|troubleshoot|if .+ fails|when .+ fails|common issues|known issues)\b/.test(

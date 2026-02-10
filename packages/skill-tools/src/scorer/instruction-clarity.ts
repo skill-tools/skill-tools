@@ -41,8 +41,7 @@ export function scoreInstructionClarity(skill: Skill): DimensionScore {
 	}
 
 	// Has error handling (0-6 points)
-	const hasErrorSection =
-		/#{1,3}\s+(?:error|troubleshoot|fail|issue|problem|debug)/i.test(body);
+	const hasErrorSection = /#{1,3}\s+(?:error|troubleshoot|fail|issue|problem|debug)/i.test(body);
 	const hasErrorKeywords =
 		/\b(?:error|fail|troubleshoot|if .+ fails|when .+ fails|common issues)\b/i.test(body);
 	if (hasErrorSection) {

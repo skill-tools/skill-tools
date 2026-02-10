@@ -23,19 +23,6 @@ function severityIcon(severity: string): string {
 	}
 }
 
-function severityColor(severity: string): string {
-	switch (severity) {
-		case 'error':
-			return RED;
-		case 'warning':
-			return YELLOW;
-		case 'info':
-			return CYAN;
-		default:
-			return '';
-	}
-}
-
 function formatDiagnostic(diag: Diagnostic): string {
 	const icon = severityIcon(diag.severity);
 	const location = diag.line ? `${DIM}line ${diag.line}${RESET} ` : '';
@@ -56,9 +43,7 @@ export function formatValidation(results: ValidationResult[]): string {
 	const lines: string[] = [];
 
 	for (const result of results) {
-		const status = result.valid
-			? `${GREEN}\u2713 PASS${RESET}`
-			: `${RED}\u2717 FAIL${RESET}`;
+		const status = result.valid ? `${GREEN}\u2713 PASS${RESET}` : `${RED}\u2717 FAIL${RESET}`;
 
 		lines.push(`${BOLD}${result.name}${RESET} ${status}`);
 		lines.push(`  ${DIM}${result.filePath}${RESET}`);
@@ -131,7 +116,7 @@ export function formatLint(results: LintResult[]): string {
 /**
  * Format a quality score as human-readable text with a visual bar.
  */
-export function formatScore(name: string, qualityScore: QualityScore): string {
+export function formatScore(_name: string, qualityScore: QualityScore): string {
 	const lines: string[] = [];
 
 	// Score header
