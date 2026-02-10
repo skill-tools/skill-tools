@@ -1,6 +1,6 @@
 {
   "name": "@skill-tools/router",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Semantic skill selection middleware for Agent Skills — embedding-based routing for large skill catalogs",
   "type": "module",
   "main": "./dist/index.cjs",

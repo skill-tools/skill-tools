@@ -1,6 +1,6 @@
 {
   "name": "@skill-tools/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core parser, types, and utilities for Agent Skills (SKILL.md)",
   "type": "module",
   "main": "./dist/index.cjs",

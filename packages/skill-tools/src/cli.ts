@@ -11,7 +11,7 @@ const program = new Command();
 program
 	.name('skill-tools')
 	.description('Validate, lint, and score Agent Skills (SKILL.md) files')
-	.version('0.1.0');
+	.version('0.1.1');
 
 // --- validate command ---
 
