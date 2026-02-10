@@ -1,7 +1,7 @@
 {
   "name": "@skill-tools/router",
-  "version": "0.1.1",
-  "description": "Semantic skill selection middleware for Agent Skills — embedding-based routing for large skill catalogs",
+  "version": "0.1.0",
+  "description": "BM25 skill selection middleware for Agent Skills — fast full-text routing for large skill catalogs",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -36,16 +36,21 @@
   "keywords": [
     "agent-skills",
     "skill-routing",
-    "semantic-search",
-    "vector-search",
-    "embeddings",
+    "bm25",
+    "full-text-search",
+    "skill-md",
     "ai-agent"
   ],
   "author": "Piyush Vyas <pyyush>",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/skill-tools/skill-tools"
+    "url": "https://github.com/skill-tools/skill-tools",
+    "directory": "packages/router"
+  },
+  "homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/router",
+  "bugs": {
+    "url": "https://github.com/skill-tools/skill-tools/issues"
   },
   "engines": {
     "node": ">=18.0.0"

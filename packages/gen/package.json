@@ -1,6 +1,6 @@
 {
 	"name": "@skill-tools/gen",
-	"version": "0.1.1",
+	"version": "0.1.0",
 	"description": "Generate Agent Skills (SKILL.md) from OpenAPI specs, REST APIs, and text descriptions",
 	"type": "module",
 	"license": "Apache-2.0",
@@ -9,6 +9,10 @@
 		"type": "git",
 		"url": "https://github.com/skill-tools/skill-tools",
 		"directory": "packages/gen"
+	},
+	"homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/gen",
+	"bugs": {
+		"url": "https://github.com/skill-tools/skill-tools/issues"
 	},
 	"exports": {
 		".": {
@@ -30,7 +34,22 @@
 		"build": "tsup",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check src/",
+		"lint:fix": "biome check --write src/",
+		"format": "biome format --write src/",
+		"format:check": "biome format src/",
+		"clean": "rm -rf dist"
+	},
+	"keywords": [
+		"agent-skills",
+		"skill-md",
+		"openapi",
+		"code-generation",
+		"ai-agent"
+	],
+	"engines": {
+		"node": ">=18.0.0"
 	},
 	"dependencies": {
 		"@skill-tools/core": "workspace:*",
@@ -38,7 +57,8 @@
 		"yaml": "^2.7.0"
 	},
 	"devDependencies": {
-		"@types/node": "^22.15.29",
+		"@biomejs/biome": "^2.3.14",
+		"@types/node": "^25.2.2",
 		"tsup": "^8.5.1",
 		"typescript": "^5.9.3",
 		"vitest": "^4.0.18"

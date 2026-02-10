@@ -1,4 +1,6 @@
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
+import type { BM25Options } from './bm25/index.js';
+import { BM25Index } from './bm25/index.js';
 import type { EmbeddingConfig, EmbeddingProvider } from './embeddings/interface.js';
 import { LocalEmbeddingProvider } from './embeddings/local.js';
 import type { VectorStore } from './stores/interface.js';
@@ -48,15 +50,21 @@ export interface SelectOptions {
  * Options for the SkillRouter constructor.
  */
 export interface SkillRouterOptions {
-	/** Embedding provider configuration */
+	/** Embedding provider configuration. Defaults to BM25 ('local'). */
 	readonly embedding?: EmbeddingConfig;
+	/** BM25 tuning parameters (only used with the default BM25 engine) */
+	readonly bm25?: BM25Options;
 }
 
 /**
- * SkillRouter — Semantic skill selection middleware.
+ * SkillRouter — Skill selection middleware using BM25 full-text search.
  *
- * Indexes skill descriptions as embeddings and enables semantic
- * search to find the most relevant skills for a given query.
+ * Indexes skill descriptions and enables fast, ranked search to find
+ * the most relevant skills for a given query. Uses Okapi BM25 by default
+ * with zero external dependencies.
+ *
+ * For neural/semantic embeddings, pass a custom embedding provider
+ * via the `embedding` option.
  *
  * @example
  * ```ts
@@ -71,42 +79,81 @@ export interface SkillRouterOptions {
  * ```
  */
 export class SkillRouter {
-	private readonly embedding: EmbeddingProvider;
-	private readonly store: VectorStore;
+	/** BM25 index — used when no external embedding provider is configured */
+	private readonly bm25: BM25Index | null;
+
+	/** Embedding provider — used with custom/openai/ollama providers */
+	private readonly embedding: EmbeddingProvider | null;
+
+	/** Vector store — used alongside embedding provider */
+	private readonly store: VectorStore | null;
+
+	/** Whether the router uses the BM25 engine (true) or embedding+store (false) */
+	private readonly usesBM25: boolean;
+
 	private skillNames: Set<string> = new Set();
 
 	constructor(options?: SkillRouterOptions) {
-		this.embedding = createEmbeddingProvider(options?.embedding ?? 'local');
-		this.store = new MemoryVectorStore();
+		const embeddingConfig = options?.embedding ?? 'local';
+
+		if (embeddingConfig === 'local') {
+			// Default: BM25 full-text search — fast, zero-dependency
+			this.bm25 = new BM25Index(options?.bm25);
+			this.embedding = null;
+			this.store = null;
+			this.usesBM25 = true;
+		} else {
+			// External embedding provider: use embedding + vector store
+			this.embedding = createEmbeddingProvider(embeddingConfig);
+			this.store = new MemoryVectorStore();
+			this.bm25 = null;
+			this.usesBM25 = false;
+		}
 	}
 
 	/**
 	 * Index a list of skill entries.
-	 * Embeds their descriptions and stores the vectors.
+	 * With BM25 (default): indexes description text directly.
+	 * With embeddings: embeds descriptions and stores vectors.
 	 */
 	async indexSkills(skills: SkillEntry[]): Promise<void> {
 		if (skills.length === 0) return;
 
-		const descriptions = skills.map((s) => s.description);
+		if (this.usesBM25 && this.bm25) {
+			// BM25 path — direct text indexing, no vectors
+			this.bm25.add(
+				skills.map((s) => ({
+					id: s.name,
+					text: s.description,
+					metadata: {
+						description: s.description,
+						path: s.path,
+						...s.metadata,
+					},
+				})),
+			);
+		} else if (this.embedding && this.store) {
+			// Embedding path — vectorize and store
+			const descriptions = skills.map((s) => s.description);
 
-		// Build vocabulary for local embedding provider
-		if (this.embedding instanceof LocalEmbeddingProvider) {
-			this.embedding.buildVocabulary(descriptions);
+			if (this.embedding instanceof LocalEmbeddingProvider) {
+				this.embedding.buildVocabulary(descriptions);
+			}
+
+			const vectors = await this.embedding.embed(descriptions);
+
+			const entries = skills.map((skill, i) => ({
+				id: skill.name,
+				vector: vectors[i]!,
+				metadata: {
+					description: skill.description,
+					path: skill.path,
+					...skill.metadata,
+				},
+			}));
+
+			await this.store.add(entries);
 		}
-
-		const vectors = await this.embedding.embed(descriptions);
-
-		const entries = skills.map((skill, i) => ({
-			id: skill.name,
-			vector: vectors[i]!,
-			metadata: {
-				description: skill.description,
-				path: skill.path,
-				...skill.metadata,
-			},
-		}));
-
-		await this.store.add(entries);
 
 		for (const skill of skills) {
 			this.skillNames.add(skill.name);
@@ -145,14 +192,21 @@ export class SkillRouter {
 		const boost = new Set(options?.boost ?? []);
 		const exclude = options?.exclude ?? [];
 
-		// Embed the query
-		const [queryVector] = await this.embedding.embed([query]);
-		if (!queryVector) {
-			throw new Error('Embedding provider returned empty result for query');
-		}
+		let results: Array<{ id: string; score: number; metadata: Record<string, unknown> }>;
 
-		// Search the store
-		let results = await this.store.search(queryVector, topK * 2, threshold);
+		if (this.usesBM25 && this.bm25) {
+			// BM25 path — direct text scoring
+			results = this.bm25.search(query, topK * 2, threshold);
+		} else if (this.embedding && this.store) {
+			// Embedding path — vectorize query and search store
+			const [queryVector] = await this.embedding.embed([query]);
+			if (!queryVector) {
+				throw new Error('Embedding provider returned empty result for query');
+			}
+			results = await this.store.search(queryVector, topK * 2, threshold);
+		} else {
+			return [];
+		}
 
 		// Apply exclude filters
 		if (exclude.length > 0) {
@@ -189,31 +243,53 @@ export class SkillRouter {
 		const conflicts: ConflictGroup[] = [];
 		const names = Array.from(this.skillNames);
 
-		// For each skill, search for similar ones
-		for (let i = 0; i < names.length; i++) {
-			const name = names[i]!;
-			// Get the stored entry's description to use as query
-			const results = await this.store.search(
-				(await this.embedding.embed([name]))[0]!,
-				names.length,
-				threshold,
-			);
+		if (this.usesBM25 && this.bm25) {
+			// BM25 path — search each skill name against descriptions
+			for (const name of names) {
+				const results = this.bm25.search(name, names.length, threshold);
+				const similar = results
+					.filter((r) => r.id !== name && r.score >= threshold)
+					.map((r) => r.id);
 
-			// Filter to only other skills above threshold
-			const similar = results.filter((r) => r.id !== name && r.score >= threshold).map((r) => r.id);
-
-			if (similar.length > 0) {
-				// Check if this group already exists
-				const existing = conflicts.find(
-					(c) => c.skills.includes(name) || similar.some((s) => c.skills.includes(s)),
+				if (similar.length > 0) {
+					const existing = conflicts.find(
+						(c) => c.skills.includes(name) || similar.some((s) => c.skills.includes(s)),
+					);
+					if (!existing) {
+						conflicts.push({
+							skills: [name, ...similar],
+							similarity: results.find((r) => r.id !== name)?.score ?? threshold,
+							suggestion:
+								'These skills have highly similar descriptions. Consider differentiating their trigger contexts.',
+						});
+					}
+				}
+			}
+		} else if (this.embedding && this.store) {
+			// Embedding path — embed skill names and search store
+			for (const name of names) {
+				const results = await this.store.search(
+					(await this.embedding.embed([name]))[0]!,
+					names.length,
+					threshold,
 				);
-				if (!existing) {
-					conflicts.push({
-						skills: [name, ...similar],
-						similarity: results.find((r) => r.id !== name)?.score ?? threshold,
-						suggestion:
-							'These skills have highly similar descriptions. Consider differentiating their trigger contexts.',
-					});
+
+				const similar = results
+					.filter((r) => r.id !== name && r.score >= threshold)
+					.map((r) => r.id);
+
+				if (similar.length > 0) {
+					const existing = conflicts.find(
+						(c) => c.skills.includes(name) || similar.some((s) => c.skills.includes(s)),
+					);
+					if (!existing) {
+						conflicts.push({
+							skills: [name, ...similar],
+							similarity: results.find((r) => r.id !== name)?.score ?? threshold,
+							suggestion:
+								'These skills have highly similar descriptions. Consider differentiating their trigger contexts.',
+						});
+					}
 				}
 			}
 		}
@@ -225,33 +301,57 @@ export class SkillRouter {
 	 * Get the number of indexed skills.
 	 */
 	get count(): number {
-		return this.store.size();
+		if (this.usesBM25 && this.bm25) {
+			return this.bm25.size();
+		}
+		return this.store?.size() ?? 0;
 	}
 
 	/**
 	 * Save the index to a JSON-serializable object.
 	 */
 	save(): SkillRouterSnapshot {
+		if (this.usesBM25 && this.bm25) {
+			return {
+				version: 1,
+				embeddingProvider: 'bm25',
+				dimensions: 0,
+				store: this.bm25.serialize(),
+				skillNames: Array.from(this.skillNames),
+			};
+		}
+
 		return {
 			version: 1,
-			embeddingProvider: this.embedding.name,
-			dimensions: this.embedding.dimensions,
-			store: this.store.serialize(),
+			embeddingProvider: this.embedding!.name,
+			dimensions: this.embedding!.dimensions,
+			store: this.store!.serialize(),
 			skillNames: Array.from(this.skillNames),
 		};
 	}
 
 	/**
 	 * Load a previously saved index.
-	 * Validates that the snapshot dimensions match the current embedding provider.
+	 * Validates that the snapshot format matches the current engine.
 	 */
 	load(snapshot: SkillRouterSnapshot): void {
-		if (snapshot.dimensions !== this.embedding.dimensions) {
-			throw new Error(
-				`Snapshot dimensions (${snapshot.dimensions}) don't match current provider dimensions (${this.embedding.dimensions})`,
-			);
+		if (this.usesBM25 && this.bm25) {
+			if (snapshot.embeddingProvider !== 'bm25') {
+				throw new Error(
+					`Cannot load snapshot from provider "${snapshot.embeddingProvider}" into BM25 router. ` +
+						'Create the router with a matching embedding config.',
+				);
+			}
+			this.bm25.deserialize(snapshot.store);
+		} else if (this.embedding && this.store) {
+			if (snapshot.dimensions !== this.embedding.dimensions) {
+				throw new Error(
+					`Snapshot dimensions (${snapshot.dimensions}) don't match current provider dimensions (${this.embedding.dimensions})`,
+				);
+			}
+			this.store.deserialize(snapshot.store);
 		}
-		this.store.deserialize(snapshot.store);
+
 		this.skillNames = new Set(snapshot.skillNames);
 	}
 

@@ -13,26 +13,25 @@ npm install @skill-tools/core
 ## Usage
 
 ```typescript
-import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
-
-// Parse a single SKILL.md file
-const result = parseSkill('./my-skill/SKILL.md');
-if (result.ok) {
-  console.log(result.data.metadata.name);
-  console.log(result.data.metadata.description);
-  console.log(result.data.body);
-}
+import { parseSkill, resolveSkillFiles, countTokens } from '@skill-tools/core';
 
 // Discover all SKILL.md files in a directory
-const files = await resolveSkillFiles('./skills/');
+const locations = await resolveSkillFiles('./skills/');
+
+// Parse a single SKILL.md file
+const result = await parseSkill(locations[0].skillFile);
+if (result.ok) {
+  console.log(result.skill.metadata.name);
+  console.log(result.skill.metadata.description);
+  console.log(result.skill.sections);
+}
 
 // Parse raw content without file I/O
 import { parseSkillContent } from '@skill-tools/core';
-const skill = parseSkillContent(markdownString, 'virtual.md');
+const parsed = parseSkillContent(markdownString, 'path/SKILL.md', 'path/');
 
-// Count tokens
-import { countTokens } from '@skill-tools/core';
-const tokens = countTokens(skill.body);
+// Count tokens (cl100k_base encoding)
+const tokens = countTokens('Hello, world!');
 ```
 
 ## API
@@ -40,7 +39,7 @@ const tokens = countTokens(skill.body);
 | Export | Description |
 |--------|-------------|
 | `parseSkill(path)` | Parse a SKILL.md file from disk |
-| `parseSkillContent(content, path)` | Parse SKILL.md from a string |
+| `parseSkillContent(content, filePath, dirPath)` | Parse SKILL.md from a string |
 | `resolveSkillFiles(dir)` | Find all SKILL.md files in a directory tree |
 | `countTokens(text)` | Count tokens using tiktoken (cl100k_base) |
 

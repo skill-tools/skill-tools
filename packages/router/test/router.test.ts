@@ -149,8 +149,8 @@ describe('SkillRouter', () => {
 		const snapshot = router.save();
 
 		expect(snapshot.version).toBe(1);
-		expect(snapshot.embeddingProvider).toBe('local-tfidf');
-		expect(snapshot.dimensions).toBe(256);
+		expect(snapshot.embeddingProvider).toBe('bm25');
+		expect(snapshot.dimensions).toBe(0);
 		expect(snapshot.skillNames).toHaveLength(5);
 	});
 

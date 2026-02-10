@@ -11,7 +11,7 @@ npm install -g @skill-tools/gen
 ## CLI Usage
 
 ```bash
-# Generate from an OpenAPI spec (unified mode -- one SKILL.md)
+# Generate from an OpenAPI spec (unified mode — one SKILL.md)
 skillgen openapi ./petstore.yaml
 
 # Generate per-endpoint skills
@@ -34,23 +34,25 @@ skillgen openapi ./api.json -o ./skills/
 ## Programmatic API
 
 ```typescript
-import { generateFromOpenAPI, generateFromText } from '@skill-tools/gen';
+import { generateFromOpenApi, generateFromText } from '@skill-tools/gen';
 
-// From OpenAPI spec
-const result = await generateFromOpenAPI('./petstore.yaml', {
+// From OpenAPI spec file
+const result = await generateFromOpenApi('./petstore.yaml', {
   mode: 'unified',
 });
 
 // From text description
-const result = generateFromText({
-  name: 'deploy-vercel',
-  description: 'Deploy applications to Vercel',
-  instructions: 'Run `vercel deploy` in the project root.',
-});
+const text = generateFromText(
+  'deploy-vercel',
+  'Deploy applications to Vercel',
+  'Run `vercel deploy` in the project root.',
+);
 
-// result.files is a Map<string, string> of path -> content
-for (const [path, content] of result.files) {
-  console.log(path, content);
+// result.files is a Map<string, string> of path → content
+if (result.ok) {
+  for (const [path, content] of result.files) {
+    console.log(path, content);
+  }
 }
 ```
 

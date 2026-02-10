@@ -1,6 +1,6 @@
 {
   "name": "@skill-tools/core",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Core parser, types, and utilities for Agent Skills (SKILL.md)",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -44,7 +44,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/skill-tools/skill-tools"
+    "url": "https://github.com/skill-tools/skill-tools",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/core",
+  "bugs": {
+    "url": "https://github.com/skill-tools/skill-tools/issues"
   },
   "engines": {
     "node": ">=18.0.0"

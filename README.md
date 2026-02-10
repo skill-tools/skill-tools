@@ -8,7 +8,7 @@ Validation, routing, and generation tooling for [Agent Skills](https://agentskil
 |---------|-----|-------------|
 | [`@skill-tools/core`](packages/core) | `npm i @skill-tools/core` | Parser, types, tokenizer, file resolver |
 | [`skill-tools`](packages/skill-tools) | `npm i -g skill-tools` | CLI — validate, lint, score |
-| [`@skill-tools/router`](packages/router) | `npm i @skill-tools/router` | Semantic skill selection (TF-IDF + cosine similarity) |
+| [`@skill-tools/router`](packages/router) | `npm i @skill-tools/router` | BM25 skill selection for large catalogs |
 | [`@skill-tools/gen`](packages/gen) | `npm i @skill-tools/gen` | Generate SKILL.md from OpenAPI specs or text |
 
 ## Quick Start
@@ -36,10 +36,10 @@ skill-tools check ./my-skill/
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 
 const files = await resolveSkillFiles('./skills/');
-for (const file of files) {
-  const result = parseSkill(file);
+for (const loc of files) {
+  const result = await parseSkill(loc.skillFile);
   if (result.ok) {
-    console.log(result.data.metadata.name);
+    console.log(result.skill.metadata.name);
   }
 }
 ```
@@ -49,7 +49,7 @@ for (const file of files) {
 ```bash
 pnpm install        # Install dependencies
 pnpm build          # Build all packages
-pnpm test           # Run all 114 tests
+pnpm test           # Run all tests
 pnpm check          # lint + typecheck + test
 ```
 
