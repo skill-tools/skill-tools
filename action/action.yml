@@ -1,0 +1,47 @@
+name: 'Skillkit - Agent Skills Quality Check'
+description: 'Validate, lint, and score Agent Skills (SKILL.md) files in CI'
+author: 'Piyush Vyas'
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  path:
+    description: 'Path to skill directory or SKILL.md file'
+    required: false
+    default: '.'
+  min-score:
+    description: 'Minimum quality score (0-100). Fails if any skill scores below.'
+    required: false
+    default: '0'
+  fail-on:
+    description: 'Minimum severity to fail on: error, warning, or info'
+    required: false
+    default: 'error'
+  format:
+    description: 'Output format: text or json'
+    required: false
+    default: 'text'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '18'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install skillkit
+      shell: bash
+      run: npm install -g skillkit@latest
+
+    - name: Run skillkit check
+      shell: bash
+      run: |
+        skillkit check "${{ inputs.path }}" \
+          --format "${{ inputs.format }}" \
+          --min-score "${{ inputs.min-score }}"

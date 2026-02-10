@@ -1,0 +1,46 @@
+{
+	"name": "skillgen",
+	"version": "0.1.0",
+	"description": "Generate Agent Skills (SKILL.md) from OpenAPI specs, REST APIs, and text descriptions",
+	"type": "module",
+	"license": "Apache-2.0",
+	"author": "Piyush Vyas <pyyush>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/skill-tools/skill-tools",
+		"directory": "packages/gen"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		}
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"skillgen": "./dist/cli.js"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@skill-tools/core": "workspace:*",
+		"commander": "^13.1.0",
+		"yaml": "^2.7.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.15.29",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.18"
+	}
+}
