@@ -1,4 +1,4 @@
-name: 'Skillkit - Agent Skills Quality Check'
+name: 'skill-tools - Agent Skills Quality Check'
 description: 'Validate, lint, and score Agent Skills (SKILL.md) files in CI'
 author: 'Piyush Vyas'
 branding:
@@ -35,13 +35,14 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Install skillkit
+    - name: Install skill-tools
       shell: bash
-      run: npm install -g skillkit@latest
+      run: npm install -g skill-tools@latest
 
-    - name: Run skillkit check
+    - name: Run skill-tools check
       shell: bash
       run: |
-        skillkit check "${{ inputs.path }}" \
+        skill-tools check "${{ inputs.path }}" \
           --format "${{ inputs.format }}" \
+          --fail-on "${{ inputs.fail-on }}" \
           --min-score "${{ inputs.min-score }}"

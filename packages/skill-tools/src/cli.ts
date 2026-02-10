@@ -135,8 +135,13 @@ program
 	.description('Run validate + lint + score in a single pass')
 	.argument('<path>', 'Path to SKILL.md file, skill directory, or directory of skills')
 	.option('-f, --format <format>', 'Output format: text or json', 'text')
+	.option(
+		'--fail-on <severity>',
+		'Fail if any diagnostic has this severity or higher: error, warning, info',
+		'error',
+	)
 	.option('--min-score <score>', 'Fail if any skill scores below this threshold', '0')
-	.action(async (path: string, opts: { format: string; minScore: string }) => {
+	.action(async (path: string, opts: { format: string; failOn: string; minScore: string }) => {
 		const minScore = Number.parseInt(opts.minScore, 10);
 
 		// Validate
@@ -150,6 +155,8 @@ program
 		// Lint and score only valid skills
 		const validSkills = validationResults.filter((r) => r.valid && r.skill);
 		let anyBelowMin = false;
+		const failSeverities = getFailSeverities(opts.failOn);
+		let hasLintFails = false;
 
 		for (const result of validSkills) {
 			const skill = result.skill!;
@@ -160,6 +167,10 @@ program
 				console.log(formatLintJson([lintResult]));
 			} else {
 				console.log(formatLint([lintResult]));
+			}
+
+			if (lintResult.diagnostics.some((d) => failSeverities.has(d.severity))) {
+				hasLintFails = true;
 			}
 
 			// Score
@@ -177,7 +188,7 @@ program
 		}
 
 		const hasValidationErrors = validationResults.some((r) => !r.valid);
-		process.exitCode = hasValidationErrors || anyBelowMin ? 1 : 0;
+		process.exitCode = hasValidationErrors || hasLintFails || anyBelowMin ? 1 : 0;
 	});
 
 function getFailSeverities(failOn: string): Set<string> {

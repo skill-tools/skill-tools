@@ -35,3 +35,7 @@ pnpm-debug.log*
 
 # Claude
 CLAUDE.md
+
+# Demo temp files
+.anthropic-skills-clone/
+.demo-clones/

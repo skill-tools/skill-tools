@@ -18,7 +18,7 @@ skillgen openapi ./petstore.yaml
 skillgen openapi ./petstore.yaml --mode per-endpoint
 
 # Generate from a text description
-skillgen text --name deploy-vercel --description "Deploy to Vercel"
+skillgen from-text deploy-vercel "Deploy to Vercel"
 
 # Custom output directory
 skillgen openapi ./api.json -o ./skills/

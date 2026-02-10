@@ -348,10 +348,6 @@ function parseSections(content: string, _filePath: string): SkillSection[] {
 	let currentSection: { heading: string; depth: number; line: number; lines: string[] } | null =
 		null;
 
-	// Calculate the frontmatter offset (lines before content)
-	// gray-matter strips the frontmatter, so we need to count from line 1 of the content
-	const frontmatterOffset = 0; // Sections are relative to the content start
-
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i]!;
 		const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
@@ -370,7 +366,7 @@ function parseSections(content: string, _filePath: string): SkillSection[] {
 			currentSection = {
 				heading: headingMatch[2]!,
 				depth: headingMatch[1]!.length,
-				line: frontmatterOffset + i + 1,
+				line: i + 1,
 				lines: [],
 			};
 		} else if (currentSection) {
