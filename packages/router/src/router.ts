@@ -1,6 +1,7 @@
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 import type { BM25Options } from './bm25/index.js';
 import { BM25Index } from './bm25/index.js';
+import { extractContext } from './context/extractor.js';
 import type { EmbeddingConfig, EmbeddingProvider } from './embeddings/interface.js';
 import { LocalEmbeddingProvider } from './embeddings/local.js';
 import type { VectorStore } from './stores/interface.js';
@@ -18,6 +19,14 @@ export interface SkillEntry {
 	readonly path?: string;
 	/** Additional metadata to store alongside the embedding */
 	readonly metadata?: Record<string, unknown>;
+	/** Raw markdown body (used for contextual retrieval) */
+	readonly body?: string;
+	/** Parsed sections from the SKILL.md (used for contextual retrieval) */
+	readonly sections?: ReadonlyArray<{
+		readonly heading: string;
+		readonly depth: number;
+		readonly content: string;
+	}>;
 }
 
 /**
@@ -54,6 +63,13 @@ export interface SkillRouterOptions {
 	readonly embedding?: EmbeddingConfig;
 	/** BM25 tuning parameters (only used with the default BM25 engine) */
 	readonly bm25?: BM25Options;
+	/**
+	 * Enable contextual retrieval. When true (default), skills with
+	 * body or sections will have supplementary context extracted and
+	 * prepended to their description before indexing.
+	 * Only affects indexing — result descriptions stay unchanged.
+	 */
+	readonly context?: boolean;
 }
 
 /**
@@ -91,10 +107,14 @@ export class SkillRouter {
 	/** Whether the router uses the BM25 engine (true) or embedding+store (false) */
 	private readonly usesBM25: boolean;
 
+	/** Whether contextual retrieval is enabled */
+	private readonly contextEnabled: boolean;
+
 	private skillNames: Set<string> = new Set();
 
 	constructor(options?: SkillRouterOptions) {
 		const embeddingConfig = options?.embedding ?? 'local';
+		this.contextEnabled = options?.context !== false;
 
 		if (embeddingConfig === 'local') {
 			// Default: BM25 full-text search — fast, zero-dependency
@@ -124,7 +144,7 @@ export class SkillRouter {
 			this.bm25.add(
 				skills.map((s) => ({
 					id: s.name,
-					text: s.description,
+					text: this.enrichText(s),
 					metadata: {
 						description: s.description,
 						path: s.path,
@@ -134,7 +154,7 @@ export class SkillRouter {
 			);
 		} else if (this.embedding && this.store) {
 			// Embedding path — vectorize and store
-			const descriptions = skills.map((s) => s.description);
+			const descriptions = skills.map((s) => this.enrichText(s));
 
 			if (this.embedding instanceof LocalEmbeddingProvider) {
 				this.embedding.buildVocabulary(descriptions);
@@ -175,6 +195,8 @@ export class SkillRouter {
 					name: result.skill.metadata.name ?? location.dirName,
 					description: result.skill.metadata.description,
 					path: location.skillFile,
+					body: result.skill.body,
+					sections: result.skill.sections,
 				});
 			}
 		}
@@ -295,6 +317,19 @@ export class SkillRouter {
 		}
 
 		return conflicts;
+	}
+
+	/**
+	 * Build the text to index for a skill entry.
+	 * When contextual retrieval is enabled and the skill has body/sections,
+	 * prepends extracted context to the description.
+	 */
+	private enrichText(skill: SkillEntry): string {
+		if (this.contextEnabled && (skill.body || skill.sections)) {
+			const ctx = extractContext(skill);
+			if (ctx) return `${ctx} ${skill.description}`;
+		}
+		return skill.description;
 	}
 
 	/**
