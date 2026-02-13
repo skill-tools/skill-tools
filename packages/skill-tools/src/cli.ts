@@ -330,84 +330,63 @@ program
 
 program
 	.command('to-prompt')
-	.description(
-		'Generate <available_skills> XML for agent system prompt injection',
-	)
-	.argument(
-		'<paths...>',
-		'Paths to SKILL.md files, skill directories, or directories of skills',
-	)
+	.description('Generate <available_skills> XML for agent system prompt injection')
+	.argument('<paths...>', 'Paths to SKILL.md files, skill directories, or directories of skills')
 	.option(
 		'--include-location',
 		'Include <location> element with file paths (for filesystem-based agents)',
 	)
 	.option('-f, --format <format>', 'Output format: xml or json', 'xml')
-	.action(
-		async (
-			paths: string[],
-			opts: { includeLocation?: boolean; format: string },
-		) => {
-			const skills: Array<{
-				name: string;
-				description: string;
-				path: string;
-			}> = [];
+	.action(async (paths: string[], opts: { includeLocation?: boolean; format: string }) => {
+		const skills: Array<{
+			name: string;
+			description: string;
+			path: string;
+		}> = [];
 
-			for (const searchPath of paths) {
-				const locations = await resolveSkillFiles(searchPath);
-				for (const location of locations) {
-					const parseResult = await parseSkill(location.skillFile);
-					if (parseResult.ok && parseResult.skill.metadata.description) {
-						skills.push({
-							name:
-								parseResult.skill.metadata.name ??
-								location.dirName,
-							description:
-								parseResult.skill.metadata.description,
-							path: location.skillFile,
-						});
-					}
+		for (const searchPath of paths) {
+			const locations = await resolveSkillFiles(searchPath);
+			for (const location of locations) {
+				const parseResult = await parseSkill(location.skillFile);
+				if (parseResult.ok && parseResult.skill.metadata.description) {
+					skills.push({
+						name: parseResult.skill.metadata.name ?? location.dirName,
+						description: parseResult.skill.metadata.description,
+						path: location.skillFile,
+					});
 				}
 			}
+		}
 
-			if (skills.length === 0) {
-				console.error(
-					'No valid skills found at the specified paths',
-				);
-				process.exitCode = 1;
-				return;
-			}
+		if (skills.length === 0) {
+			console.error('No valid skills found at the specified paths');
+			process.exitCode = 1;
+			return;
+		}
 
-			if (opts.format === 'json') {
-				const jsonSkills = skills.map((s) => ({
-					name: s.name,
-					description: s.description,
-					...(opts.includeLocation ? { location: s.path } : {}),
-				}));
-				console.log(JSON.stringify(jsonSkills, null, 2));
-			} else {
-				// XML format per agentskills.io/integrate-skills
-				const xmlLines = ['<available_skills>'];
-				for (const skill of skills) {
-					xmlLines.push('  <skill>');
-					xmlLines.push(
-						`    <name>${escapeXml(skill.name)}</name>`,
-					);
-					xmlLines.push(
-						`    <description>${escapeXml(skill.description)}</description>`,
-					);
-					if (opts.includeLocation) {
-						xmlLines.push(
-							`    <location>${escapeXml(skill.path)}</location>`,
-						);
-					}
-					xmlLines.push('  </skill>');
+		if (opts.format === 'json') {
+			const jsonSkills = skills.map((s) => ({
+				name: s.name,
+				description: s.description,
+				...(opts.includeLocation ? { location: s.path } : {}),
+			}));
+			console.log(JSON.stringify(jsonSkills, null, 2));
+		} else {
+			// XML format per agentskills.io/integrate-skills
+			const xmlLines = ['<available_skills>'];
+			for (const skill of skills) {
+				xmlLines.push('  <skill>');
+				xmlLines.push(`    <name>${escapeXml(skill.name)}</name>`);
+				xmlLines.push(`    <description>${escapeXml(skill.description)}</description>`);
+				if (opts.includeLocation) {
+					xmlLines.push(`    <location>${escapeXml(skill.path)}</location>`);
 				}
-				xmlLines.push('</available_skills>');
-				console.log(xmlLines.join('\n'));
+				xmlLines.push('  </skill>');
 			}
-		},
-	);
+			xmlLines.push('</available_skills>');
+			console.log(xmlLines.join('\n'));
+		}
+	});
 
 function getFailSeverities(failOn: string): Set<string> {
 	switch (failOn) {
