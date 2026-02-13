@@ -34,10 +34,10 @@ export const descriptionTriggerKeywords: RuleDefinition = {
 				ruleId: 'description-trigger-keywords',
 				severity: 'warning',
 				message:
-					'Description lacks trigger keywords. Include "Use when..." or specific action verbs (deploy, test, build, etc.)',
+					'Description has no trigger keywords — agents won\'t know when to invoke this skill. Add "Use when..." or action verbs like deploy, test, build, create',
 				file: skill.filePath,
 				line: 1,
-				fix: 'Add trigger context: "Deploy apps to Vercel. Use when the user wants to publish or ship a web app."',
+				fix: 'Example: "Deploy apps to Vercel. Use when the user wants to publish or ship a web app."',
 			});
 		}
 

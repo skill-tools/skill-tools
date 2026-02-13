@@ -11,7 +11,7 @@ const program = new Command();
 program
 	.name('skill-tools')
 	.description('Validate, lint, and score Agent Skills (SKILL.md) files')
-	.version('0.1.0');
+	.version('0.2.0');
 
 // --- validate command ---
 
@@ -22,9 +22,12 @@ program
 	.argument('<path>', 'Path to SKILL.md file, skill directory, or directory of skills')
 	.option('-f, --format <format>', 'Output format: text or json', 'text')
 	.action(async (path: string, opts: { format: string }) => {
+		const start = performance.now();
 		const results = await validate(path);
+		const elapsed = performance.now() - start;
+
 		const output =
-			opts.format === 'json' ? formatValidationJson(results) : formatValidation(results);
+			opts.format === 'json' ? formatValidationJson(results) : formatValidation(results, elapsed);
 		console.log(output);
 
 		const hasErrors = results.some((r) => !r.valid);
@@ -45,6 +48,7 @@ program
 		'error',
 	)
 	.action(async (path: string, opts: { format: string; failOn: string }) => {
+		const start = performance.now();
 		const locations = await resolveSkillFiles(path);
 
 		if (locations.length === 0) {
@@ -65,7 +69,8 @@ program
 			results.push(lint(parseResult.skill));
 		}
 
-		const output = opts.format === 'json' ? formatLintJson(results) : formatLint(results);
+		const elapsed = performance.now() - start;
+		const output = opts.format === 'json' ? formatLintJson(results) : formatLint(results, elapsed);
 		console.log(output);
 
 		const failSeverities = getFailSeverities(opts.failOn);
@@ -83,6 +88,7 @@ program
 	.option('-f, --format <format>', 'Output format: text or json', 'text')
 	.option('--min-score <score>', 'Fail if any skill scores below this threshold', '0')
 	.action(async (path: string, opts: { format: string; minScore: string }) => {
+		const start = performance.now();
 		const locations = await resolveSkillFiles(path);
 		const minScore = Number.parseInt(opts.minScore, 10);
 
@@ -112,11 +118,12 @@ program
 
 			const qualityScore = score(parseResult.skill);
 			const name = parseResult.skill.metadata.name ?? location.dirName;
+			const elapsed = performance.now() - start;
 
 			const output =
 				opts.format === 'json'
 					? formatScoreJson(name, qualityScore)
-					: formatScore(name, qualityScore);
+					: formatScore(name, qualityScore, elapsed);
 			console.log(output);
 
 			if (qualityScore.score < minScore) {
@@ -142,14 +149,17 @@ program
 	)
 	.option('--min-score <score>', 'Fail if any skill scores below this threshold', '0')
 	.action(async (path: string, opts: { format: string; failOn: string; minScore: string }) => {
+		const start = performance.now();
 		const minScore = Number.parseInt(opts.minScore, 10);
 
 		// Validate
 		const validationResults = await validate(path);
+		const validateElapsed = performance.now() - start;
+
 		if (opts.format === 'json') {
 			console.log(formatValidationJson(validationResults));
 		} else {
-			console.log(formatValidation(validationResults));
+			console.log(formatValidation(validationResults, validateElapsed));
 		}
 
 		// Lint and score only valid skills
@@ -162,11 +172,14 @@ program
 			const skill = result.skill!;
 
 			// Lint
+			const lintStart = performance.now();
 			const lintResult = lint(skill);
+			const lintElapsed = performance.now() - lintStart;
+
 			if (opts.format === 'json') {
 				console.log(formatLintJson([lintResult]));
 			} else {
-				console.log(formatLint([lintResult]));
+				console.log(formatLint([lintResult], lintElapsed));
 			}
 
 			if (lintResult.diagnostics.some((d) => failSeverities.has(d.severity))) {
@@ -174,12 +187,15 @@ program
 			}
 
 			// Score
+			const scoreStart = performance.now();
 			const qualityScore = score(skill);
+			const scoreElapsed = performance.now() - scoreStart;
 			const name = skill.metadata.name ?? result.name;
+
 			if (opts.format === 'json') {
 				console.log(formatScoreJson(name, qualityScore));
 			} else {
-				console.log(formatScore(name, qualityScore));
+				console.log(formatScore(name, qualityScore, scoreElapsed));
 			}
 
 			if (qualityScore.score < minScore) {

@@ -20,13 +20,19 @@ export const consistentHeadings: RuleDefinition = {
 
 			// A heading can go deeper by at most 1 level from its predecessor
 			if (curr.depth > prev.depth + 1) {
+				const skipped = curr.depth - prev.depth - 1;
+				const missingLevels = Array.from(
+					{ length: skipped },
+					(_, k) => `H${prev.depth + 1 + k}`,
+				).join(', ');
+
 				diagnostics.push({
 					ruleId: 'consistent-headings',
 					severity: 'info',
-					message: `Heading "${curr.heading}" (H${curr.depth}) skips levels from "${prev.heading}" (H${prev.depth})`,
+					message: `"${curr.heading}" is H${curr.depth} but follows "${prev.heading}" which is H${prev.depth} — ${missingLevels} ${skipped === 1 ? 'is' : 'are'} missing between them`,
 					file: skill.filePath,
 					line: curr.line,
-					fix: `Change to H${prev.depth + 1} for consistent hierarchy`,
+					fix: `Change "${'#'.repeat(curr.depth)} ${curr.heading}" to "${'#'.repeat(prev.depth + 1)} ${curr.heading}"`,
 				});
 			}
 		}

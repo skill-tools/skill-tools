@@ -35,13 +35,14 @@ export const descriptionSpecificity: RuleDefinition = {
 
 		const foundGeneric = GENERIC_VERBS.filter((verb) => lowerDesc.includes(verb));
 		if (foundGeneric.length > 0) {
+			const quoted = foundGeneric.map((v) => `"${v}"`).join(', ');
 			diagnostics.push({
 				ruleId: 'description-specificity',
 				severity: 'warning',
-				message: `Description uses generic verbs: ${foundGeneric.map((v) => `"${v}"`).join(', ')}. Use specific action verbs instead`,
+				message: `Description uses vague verbs: ${quoted} — these don't help agents decide when to invoke the skill`,
 				file: skill.filePath,
 				line: 1,
-				fix: 'Replace generic verbs with specific ones. E.g., "Deploy apps to Vercel" instead of "Handle Vercel deployments"',
+				fix: 'Be specific. E.g., "Deploy apps to Vercel" instead of "Handle Vercel deployments"',
 			});
 		}
 
