@@ -1,5 +1,14 @@
 # @skill-tools/router
 
+## 0.2.2
+
+### Patch Changes
+
+- [#5](https://github.com/skill-tools/skill-tools/pull/5) [`9b02379`](https://github.com/skill-tools/skill-tools/commit/9b02379bb7c49a305c552e269eb00fd2b4a7bb71) Thanks [@pyyush](https://github.com/pyyush)! - Add init and to-prompt CLI commands, name-matches-directory validation, compatibility/license field validation, description-length-optimal lint rule
+
+- Updated dependencies [[`9b02379`](https://github.com/skill-tools/skill-tools/commit/9b02379bb7c49a305c552e269eb00fd2b4a7bb71)]:
+  - @skill-tools/core@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes
