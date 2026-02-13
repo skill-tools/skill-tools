@@ -98,6 +98,18 @@ export interface SkillMetadata {
 	 */
 	readonly hooks?: Record<string, unknown>;
 
+	/**
+	 * License name or reference to a bundled license file.
+	 * Per the Agent Skills spec (agentskills.io).
+	 */
+	readonly license?: string;
+
+	/**
+	 * Environment requirements (intended product, system packages, network access, etc.).
+	 * Max 500 characters per spec.
+	 */
+	readonly compatibility?: string;
+
 	/** Arbitrary additional metadata key-value pairs */
 	readonly [key: string]: unknown;
 }
