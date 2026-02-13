@@ -29,6 +29,7 @@ const RULE = `${DIM}${'─'.repeat(50)}${RESET}`;
 
 function pad(str: string, width: number): string {
 	// Strip ANSI for length calculation
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape stripping requires matching \x1b
 	const visible = str.replace(/\x1b\[[0-9;]*m/g, '');
 	const diff = width - visible.length;
 	return diff > 0 ? str + ' '.repeat(diff) : str;
@@ -187,9 +188,12 @@ export function formatLint(results: LintResult[], elapsedMs?: number): string {
 		const parts: string[] = [`${BOLD}${total}${RESET} rules`];
 
 		if (passed > 0) parts.push(`${GREEN}${passed} passed${RESET}`);
-		if (result.errorCount > 0) parts.push(`${RED}${result.errorCount} error${result.errorCount !== 1 ? 's' : ''}${RESET}`);
+		if (result.errorCount > 0)
+			parts.push(`${RED}${result.errorCount} error${result.errorCount !== 1 ? 's' : ''}${RESET}`);
 		if (result.warningCount > 0)
-			parts.push(`${YELLOW}${result.warningCount} warning${result.warningCount !== 1 ? 's' : ''}${RESET}`);
+			parts.push(
+				`${YELLOW}${result.warningCount} warning${result.warningCount !== 1 ? 's' : ''}${RESET}`,
+			);
 		if (result.infoCount > 0) parts.push(`${CYAN}${result.infoCount} info${RESET}`);
 
 		lines.push(`  ${parts.join(`  ${DIM}\u2502${RESET}  `)}`);
@@ -311,7 +315,9 @@ export function formatValidation(results: ValidationResult[], elapsedMs?: number
 		const failed = total - passed;
 
 		if (failed > 0) {
-			lines.push(`  ${RED}${failed} failed${RESET}, ${GREEN}${passed} passed${RESET} ${DIM}(${total} skills)${RESET}`);
+			lines.push(
+				`  ${RED}${failed} failed${RESET}, ${GREEN}${passed} passed${RESET} ${DIM}(${total} skills)${RESET}`,
+			);
 		} else {
 			lines.push(`  ${GREEN}All ${total} skills passed validation${RESET}`);
 		}
@@ -328,16 +334,9 @@ export function formatValidation(results: ValidationResult[], elapsedMs?: number
  * we didn't actually run later checks like name-format or token-budget.
  * Only show a check as passed if we got far enough to verify it.
  */
-function shouldShowCheck(
-	checkId: string,
-	failedChecks: Map<string, Diagnostic[]>,
-): boolean {
+function shouldShowCheck(checkId: string, failedChecks: Map<string, Diagnostic[]>): boolean {
 	// These are early-exit checks — if any fails, later checks weren't run
-	const earlyExitChecks = [
-		'file-readable',
-		'file-not-empty',
-		'frontmatter-valid-yaml',
-	];
+	const earlyExitChecks = ['file-readable', 'file-not-empty', 'frontmatter-valid-yaml'];
 
 	for (const earlyCheck of earlyExitChecks) {
 		if (failedChecks.has(earlyCheck)) {
@@ -361,12 +360,13 @@ export function formatScore(_name: string, qualityScore: QualityScore, elapsedMs
 	const lines: string[] = [];
 
 	// Score header with color based on score
-	const scoreColor =
-		qualityScore.score >= 75 ? GREEN : qualityScore.score >= 40 ? YELLOW : RED;
+	const scoreColor = qualityScore.score >= 75 ? GREEN : qualityScore.score >= 40 ? YELLOW : RED;
 	const stars = scoreToStars(qualityScore.score);
 
 	lines.push('');
-	lines.push(`  ${BOLD}Quality Score${RESET}  ${scoreColor}${BOLD}${qualityScore.score}${RESET}${DIM}/100${RESET}  ${stars}`);
+	lines.push(
+		`  ${BOLD}Quality Score${RESET}  ${scoreColor}${BOLD}${qualityScore.score}${RESET}${DIM}/100${RESET}  ${stars}`,
+	);
 	lines.push(`  ${RULE}`);
 
 	// Dimension bars
@@ -402,7 +402,8 @@ export function formatScore(_name: string, qualityScore: QualityScore, elapsedMs
 }
 
 function scoreToStars(score: number): string {
-	const filled = score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
+	const filled =
+		score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
 	const empty = 5 - filled;
 	return `${YELLOW}${'★'.repeat(filled)}${DIM}${'☆'.repeat(empty)}${RESET}`;
 }
