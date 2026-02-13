@@ -1,5 +1,14 @@
 # skill-tools
 
+## 0.2.1
+
+### Patch Changes
+
+- [`5d047cf`](https://github.com/skill-tools/skill-tools/commit/5d047cfac256027120afb978c66313aaf2636eb4) - Redesign CLI output formatting and improve lint diagnostics
+
+- Updated dependencies [[`5d047cf`](https://github.com/skill-tools/skill-tools/commit/5d047cfac256027120afb978c66313aaf2636eb4)]:
+  - @skill-tools/core@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes

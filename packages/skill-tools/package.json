@@ -1,6 +1,6 @@
 {
   "name": "skill-tools",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Validate, lint, and score Agent Skills (SKILL.md) files",
   "type": "module",
   "bin": {
