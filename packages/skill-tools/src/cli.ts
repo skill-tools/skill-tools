@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 import { Command } from 'commander';
 import { formatLintJson, formatScoreJson, formatValidationJson } from './formatters/json.js';
@@ -11,7 +13,7 @@ const program = new Command();
 program
 	.name('skill-tools')
 	.description('Validate, lint, and score Agent Skills (SKILL.md) files')
-	.version('0.2.0');
+	.version('0.2.1');
 
 // --- validate command ---
 
@@ -207,6 +209,206 @@ program
 		process.exitCode = hasValidationErrors || hasLintFails || anyBelowMin ? 1 : 0;
 	});
 
+// --- init command ---
+
+program
+	.command('init')
+	.description('Scaffold a new skill directory with SKILL.md template')
+	.argument('<name>', 'Skill name (kebab-case, e.g. deploy-vercel)')
+	.option('-o, --out <dir>', 'Parent directory for the skill', '.')
+	.option('-d, --description <desc>', 'Skill description')
+	.option('--with-scripts', 'Include a scripts/ directory with example script')
+	.option('--with-references', 'Include a references/ directory with template')
+	.action(
+		async (
+			name: string,
+			opts: {
+				out: string;
+				description?: string;
+				withScripts?: boolean;
+				withReferences?: boolean;
+			},
+		) => {
+			// Validate name format
+			const namePattern = /^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]?$/;
+			if (!namePattern.test(name) || /--/.test(name)) {
+				console.error(
+					`Invalid skill name "${name}". Must be kebab-case, 1-64 chars, no consecutive hyphens.`,
+				);
+				process.exitCode = 1;
+				return;
+			}
+
+			const skillDir = resolve(opts.out, name);
+			const desc = opts.description ?? `TODO: Describe what ${name} does and when to use it`;
+
+			// Create skill directory
+			await mkdir(skillDir, { recursive: true });
+
+			// Generate SKILL.md
+			const skillMd = [
+				'---',
+				`name: ${name}`,
+				`description: "${desc}"`,
+				'---',
+				'',
+				`# ${name}`,
+				'',
+				'## Usage',
+				'',
+				'1. Step one',
+				'2. Step two',
+				'3. Step three',
+				'',
+				'## Examples',
+				'',
+				'```bash',
+				`# Example invocation`,
+				'```',
+				'',
+				'## Error Handling',
+				'',
+				'- If step one fails: try ...',
+				'- If the API returns an error: check ...',
+				'',
+			].join('\n');
+
+			await writeFile(join(skillDir, 'SKILL.md'), skillMd, 'utf-8');
+			console.log(`  Created: ${join(skillDir, 'SKILL.md')}`);
+
+			// Optional scripts directory
+			if (opts.withScripts) {
+				const scriptsDir = join(skillDir, 'scripts');
+				await mkdir(scriptsDir, { recursive: true });
+
+				const exampleScript = [
+					'#!/usr/bin/env bash',
+					'set -euo pipefail',
+					'',
+					`# ${name} — helper script`,
+					'# This script is referenced from SKILL.md',
+					'',
+					'echo "TODO: implement"',
+					'',
+				].join('\n');
+
+				await writeFile(join(scriptsDir, 'run.sh'), exampleScript, 'utf-8');
+				console.log(`  Created: ${join(scriptsDir, 'run.sh')}`);
+			}
+
+			// Optional references directory
+			if (opts.withReferences) {
+				const refsDir = join(skillDir, 'references');
+				await mkdir(refsDir, { recursive: true });
+
+				const refDoc = [
+					`# ${name} — Reference`,
+					'',
+					'Detailed reference documentation for the skill.',
+					'This file is loaded on-demand when the agent needs deeper context.',
+					'',
+					'## API Reference',
+					'',
+					'TODO: Add detailed API documentation here.',
+					'',
+				].join('\n');
+
+				await writeFile(join(refsDir, 'REFERENCE.md'), refDoc, 'utf-8');
+				console.log(`  Created: ${join(refsDir, 'REFERENCE.md')}`);
+			}
+
+			console.log('');
+			console.log(`Skill "${name}" created at ${skillDir}`);
+			console.log('');
+			console.log('Next steps:');
+			console.log(`  1. Edit ${join(skillDir, 'SKILL.md')} with your instructions`);
+			console.log(`  2. Run: skill-tools check ${skillDir}`);
+		},
+	);
+
+// --- to-prompt command ---
+
+program
+	.command('to-prompt')
+	.description(
+		'Generate <available_skills> XML for agent system prompt injection',
+	)
+	.argument(
+		'<paths...>',
+		'Paths to SKILL.md files, skill directories, or directories of skills',
+	)
+	.option(
+		'--include-location',
+		'Include <location> element with file paths (for filesystem-based agents)',
+	)
+	.option('-f, --format <format>', 'Output format: xml or json', 'xml')
+	.action(
+		async (
+			paths: string[],
+			opts: { includeLocation?: boolean; format: string },
+		) => {
+			const skills: Array<{
+				name: string;
+				description: string;
+				path: string;
+			}> = [];
+
+			for (const searchPath of paths) {
+				const locations = await resolveSkillFiles(searchPath);
+				for (const location of locations) {
+					const parseResult = await parseSkill(location.skillFile);
+					if (parseResult.ok && parseResult.skill.metadata.description) {
+						skills.push({
+							name:
+								parseResult.skill.metadata.name ??
+								location.dirName,
+							description:
+								parseResult.skill.metadata.description,
+							path: location.skillFile,
+						});
+					}
+				}
+			}
+
+			if (skills.length === 0) {
+				console.error(
+					'No valid skills found at the specified paths',
+				);
+				process.exitCode = 1;
+				return;
+			}
+
+			if (opts.format === 'json') {
+				const jsonSkills = skills.map((s) => ({
+					name: s.name,
+					description: s.description,
+					...(opts.includeLocation ? { location: s.path } : {}),
+				}));
+				console.log(JSON.stringify(jsonSkills, null, 2));
+			} else {
+				// XML format per agentskills.io/integrate-skills
+				const xmlLines = ['<available_skills>'];
+				for (const skill of skills) {
+					xmlLines.push('  <skill>');
+					xmlLines.push(
+						`    <name>${escapeXml(skill.name)}</name>`,
+					);
+					xmlLines.push(
+						`    <description>${escapeXml(skill.description)}</description>`,
+					);
+					if (opts.includeLocation) {
+						xmlLines.push(
+							`    <location>${escapeXml(skill.path)}</location>`,
+						);
+					}
+					xmlLines.push('  </skill>');
+				}
+				xmlLines.push('</available_skills>');
+				console.log(xmlLines.join('\n'));
+			}
+		},
+	);
+
 function getFailSeverities(failOn: string): Set<string> {
 	switch (failOn) {
 		case 'info':
@@ -216,6 +418,18 @@ function getFailSeverities(failOn: string): Set<string> {
 		default:
 			return new Set(['error']);
 	}
+}
+
+/**
+ * Escape special XML characters.
+ */
+function escapeXml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;');
 }
 
 program.parse();

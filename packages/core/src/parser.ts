@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, resolve } from 'node:path';
 import matter from 'gray-matter';
 import { countTokens } from './tokenizer.js';
 import type {
@@ -256,6 +256,59 @@ export function parseSkillContent(
 		}
 	}
 
+	// Validate name matches directory name (per agentskills.io spec)
+	if (typeof data.name === 'string' && data.name.length > 0) {
+		const dirName = basename(dirPath);
+		if (dirName !== data.name && dirName !== '.') {
+			diagnostics.push({
+				ruleId: 'name-matches-directory',
+				severity: 'warning',
+				message: `Skill name "${data.name}" does not match directory name "${dirName}". Per spec, the name field must match the parent directory name`,
+				file: filePath,
+				line: 1,
+				fix: `Rename the directory to "${data.name}" or change the name field to "${dirName}"`,
+			});
+		}
+	}
+
+	// Validate compatibility field (max 500 characters per spec)
+	if (data.compatibility != null) {
+		if (typeof data.compatibility !== 'string') {
+			diagnostics.push({
+				ruleId: 'compatibility-type',
+				severity: 'error',
+				message: 'Frontmatter "compatibility" field must be a string',
+				file: filePath,
+				line: 1,
+				fix: 'Ensure compatibility is a string: compatibility: "Requires Node.js >= 20"',
+			});
+			hasErrors = true;
+		} else if (data.compatibility.length > 500) {
+			diagnostics.push({
+				ruleId: 'compatibility-length',
+				severity: 'error',
+				message: `Compatibility field exceeds max length (${data.compatibility.length} chars). Must be at most 500 characters per spec`,
+				file: filePath,
+				line: 1,
+				fix: 'Shorten the compatibility field to essential requirements only',
+			});
+			hasErrors = true;
+		}
+	}
+
+	// Validate license field
+	if (data.license != null && typeof data.license !== 'string') {
+		diagnostics.push({
+			ruleId: 'license-type',
+			severity: 'error',
+			message: 'Frontmatter "license" field must be a string',
+			file: filePath,
+			line: 1,
+			fix: 'Ensure license is a string: license: MIT',
+		});
+		hasErrors = true;
+	}
+
 	// Check markdown body
 	const body = parsed.content.trim();
 	if (body.length === 0) {
@@ -303,12 +356,14 @@ export function parseSkillContent(
 	}
 
 	// Build metadata from all frontmatter fields
-	const knownFields = ['name', 'description', 'version'];
+	const knownFields = ['name', 'description', 'version', 'license', 'compatibility'];
 	const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
 	const metadata: SkillMetadata = {
 		...(typeof data.name === 'string' ? { name: data.name } : {}),
 		...(typeof data.description === 'string' ? { description: data.description } : {}),
 		...(data.version != null ? { version: String(data.version) } : {}),
+		...(typeof data.license === 'string' ? { license: data.license } : {}),
+		...(typeof data.compatibility === 'string' ? { compatibility: data.compatibility } : {}),
 		...Object.fromEntries(
 			Object.entries(data).filter(([k]) => !knownFields.includes(k) && !dangerousKeys.has(k)),
 		),

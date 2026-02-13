@@ -1,4 +1,5 @@
 import { consistentHeadings } from './consistent-headings.js';
+import { descriptionLengthOptimal } from './description-length-optimal.js';
 import { descriptionSpecificity } from './description-specificity.js';
 import { descriptionTriggerKeywords } from './description-trigger-keywords.js';
 import { instructionsHasErrorHandling } from './instructions-has-error-handling.js';
@@ -16,6 +17,7 @@ export type { RuleConfig, RuleDefinition, RulesConfig } from './types.js';
 export const builtinRules: ReadonlyMap<string, RuleDefinition> = new Map([
 	[descriptionSpecificity.id, descriptionSpecificity],
 	[descriptionTriggerKeywords.id, descriptionTriggerKeywords],
+	[descriptionLengthOptimal.id, descriptionLengthOptimal],
 	[progressiveDisclosure.id, progressiveDisclosure],
 	[noHardcodedPaths.id, noHardcodedPaths],
 	[noSecrets.id, noSecrets],
