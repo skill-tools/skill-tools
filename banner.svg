@@ -96,7 +96,7 @@
     <text x="32" y="28" font-family="Caveat, cursive" font-size="17" font-weight="700" fill="#1a1a1a">@skill-tools/gen</text>
     <line x1="12" y1="36" x2="176" y2="36" stroke="#ddd" stroke-width="0.8"/>
     <text x="16" y="56" font-family="Caveat, cursive" font-size="15" fill="#555">Generate SKILL.md from</text>
-    <text x="16" y="76" font-family="Caveat, cursive" font-size="15" fill="#555">OpenAPI or plain text</text>
+    <text x="16" y="76" font-family="Caveat, cursive" font-size="15" fill="#555">MCP, OpenAPI, or text</text>
     <path d="M 162 80 l 4 5 l 8 -10" stroke="#e11d48" stroke-width="1.5" fill="none" stroke-linecap="round"/>
   </g>
 
