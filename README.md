@@ -1,5 +1,9 @@
 # skill-tools
 
+<p align="center">
+  <img src="banner.svg" alt="skill-tools ecosystem" width="100%"/>
+</p>
+
 Validation, routing, and generation tooling for [Agent Skills](https://agentskills.io) (SKILL.md).
 
 ## Packages
@@ -7,7 +11,7 @@ Validation, routing, and generation tooling for [Agent Skills](https://agentskil
 | Package | npm | Description |
 |---------|-----|-------------|
 | [`@skill-tools/core`](packages/core) | `npm i @skill-tools/core` | Parser, types, tokenizer, file resolver |
-| [`skill-tools`](packages/skill-tools) | `npm i -g skill-tools` | CLI — validate, lint, score |
+| [`skill-tools`](packages/skill-tools) | `npm i -g skill-tools` | CLI — validate, lint, score, init, to-prompt |
 | [`@skill-tools/router`](packages/router) | `npm i @skill-tools/router` | BM25 skill selection for large catalogs |
 | [`@skill-tools/gen`](packages/gen) | `npm i @skill-tools/gen` | Generate SKILL.md from OpenAPI specs or text |
 
@@ -28,6 +32,12 @@ skill-tools score ./my-skill/
 
 # All three in one pass (ideal for CI)
 skill-tools check ./my-skill/
+
+# Scaffold a new skill
+skill-tools init my-new-skill
+
+# Generate XML prompt from skills (for agent system prompts)
+skill-tools to-prompt ./skills/
 ```
 
 ## Programmatic Usage

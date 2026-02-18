@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 340" fill="none">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&amp;display=swap');
+  </style>
+  <defs>
+    <!-- Pencil texture filter -->
+    <filter id="pencil" x="-2%" y="-2%" width="104%" height="104%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="pencil-light" x="-1%" y="-1%" width="102%" height="102%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" seed="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <!-- Paper background -->
+  <rect width="880" height="340" rx="4" fill="#fefdfb"/>
+
+  <!-- Subtle paper grain -->
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="1"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer>
+      <feFuncA type="linear" slope="0.03"/>
+    </feComponentTransfer>
+  </filter>
+  <rect width="880" height="340" filter="url(#grain)"/>
+
+  <!-- ====== TITLE ====== -->
+  <text x="440" y="48" text-anchor="middle" font-family="Caveat, 'Segoe Print', 'Comic Sans MS', cursive" font-size="42" font-weight="700" fill="#1a1a1a">skill-tools</text>
+
+  <!-- Hand-drawn underline under title -->
+  <path d="M 280 56 Q 360 62, 440 55 Q 520 48, 600 57" stroke="#1a1a1a" stroke-width="1.5" fill="none" filter="url(#pencil-light)" opacity="0.5"/>
+
+  <text x="440" y="78" text-anchor="middle" font-family="Caveat, 'Segoe Print', 'Comic Sans MS', cursive" font-size="18" fill="#666">Validation, routing, and generation tooling for Agent Skills</text>
+
+  <!-- ====== FOUR PACKAGE BOXES ====== -->
+
+  <!-- Core box -->
+  <g transform="translate(36, 104)" filter="url(#pencil)">
+    <rect x="1" y="1" width="186" height="100" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.3"/>
+  </g>
+  <g transform="translate(36, 104)">
+    <!-- Bracket icon -->
+    <text x="16" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="20" fill="#6366f1">{ }</text>
+    <text x="50" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="17" font-weight="700" fill="#1a1a1a">@skill-tools/core</text>
+    <line x1="12" y1="36" x2="176" y2="36" stroke="#ddd" stroke-width="0.8"/>
+    <text x="16" y="56" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">Parser, types, tokenizer</text>
+    <text x="16" y="76" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">File resolver</text>
+    <!-- Small checkmark -->
+    <path d="M 162 80 l 4 5 l 8 -10" stroke="#6366f1" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- CLI box -->
+  <g transform="translate(244, 104)" filter="url(#pencil)">
+    <rect x="1" y="1" width="186" height="100" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.3"/>
+  </g>
+  <g transform="translate(244, 104)">
+    <text x="16" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="20" fill="#10b981">$_</text>
+    <text x="48" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="17" font-weight="700" fill="#1a1a1a">skill-tools CLI</text>
+    <line x1="12" y1="36" x2="176" y2="36" stroke="#ddd" stroke-width="0.8"/>
+    <text x="16" y="56" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">validate / lint / score</text>
+    <text x="16" y="76" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">check / init / to-prompt</text>
+    <path d="M 162 80 l 4 5 l 8 -10" stroke="#10b981" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Router box -->
+  <g transform="translate(452, 104)" filter="url(#pencil)">
+    <rect x="1" y="1" width="186" height="100" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.3"/>
+  </g>
+  <g transform="translate(452, 104)">
+    <text x="16" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="20" fill="#f59e0b">~&gt;</text>
+    <text x="48" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="17" font-weight="700" fill="#1a1a1a">@skill-tools/router</text>
+    <line x1="12" y1="36" x2="176" y2="36" stroke="#ddd" stroke-width="0.8"/>
+    <text x="16" y="56" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">BM25 skill selection</text>
+    <text x="16" y="76" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">For large catalogs</text>
+    <path d="M 162 80 l 4 5 l 8 -10" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Gen box -->
+  <g transform="translate(660, 104)" filter="url(#pencil)">
+    <rect x="1" y="1" width="186" height="100" rx="3" fill="none" stroke="#1a1a1a" stroke-width="1.3"/>
+  </g>
+  <g transform="translate(660, 104)">
+    <text x="16" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="20" fill="#e11d48">*</text>
+    <text x="32" y="28" font-family="Caveat, 'Segoe Print', cursive" font-size="17" font-weight="700" fill="#1a1a1a">@skill-tools/gen</text>
+    <line x1="12" y1="36" x2="176" y2="36" stroke="#ddd" stroke-width="0.8"/>
+    <text x="16" y="56" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">Generate SKILL.md from</text>
+    <text x="16" y="76" font-family="Caveat, 'Segoe Print', cursive" font-size="15" fill="#555">OpenAPI or plain text</text>
+    <path d="M 162 80 l 4 5 l 8 -10" stroke="#e11d48" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ====== HAND-DRAWN ARROWS DOWN ====== -->
+
+  <!-- Arrow from Core down -->
+  <path d="M 130 206 Q 128 222, 220 244" stroke="#1a1a1a" stroke-width="1.2" fill="none" filter="url(#pencil-light)" stroke-linecap="round"/>
+  <path d="M 216 240 l 6 6 l -2 -8" stroke="#1a1a1a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Arrow from CLI down -->
+  <path d="M 338 206 Q 336 228, 350 244" stroke="#1a1a1a" stroke-width="1.2" fill="none" filter="url(#pencil-light)" stroke-linecap="round"/>
+  <path d="M 346 240 l 6 6 l -2 -8" stroke="#1a1a1a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Arrow from Router down -->
+  <path d="M 546 206 Q 544 228, 530 244" stroke="#1a1a1a" stroke-width="1.2" fill="none" filter="url(#pencil-light)" stroke-linecap="round"/>
+  <path d="M 526 240 l 6 6 l -2 -8" stroke="#1a1a1a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Arrow from Gen down -->
+  <path d="M 754 206 Q 752 222, 660 244" stroke="#1a1a1a" stroke-width="1.2" fill="none" filter="url(#pencil-light)" stroke-linecap="round"/>
+  <path d="M 656 240 l 6 6 l -2 -8" stroke="#1a1a1a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- ====== ECOSYSTEM LABEL ====== -->
+  <text x="440" y="234" text-anchor="middle" font-family="Caveat, 'Segoe Print', cursive" font-size="14" fill="#999" letter-spacing="3">ECOSYSTEM</text>
+
+  <!-- ====== TWO ECOSYSTEM ITEMS ====== -->
+
+  <!-- skill-tools-plugin -->
+  <g transform="translate(120, 254)" filter="url(#pencil)">
+    <path d="M 22 0 Q 0 0, 0 20 Q 0 40, 22 40 L 258 40 Q 280 40, 280 20 Q 280 0, 258 0 Z" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+  </g>
+  <g transform="translate(120, 254)">
+    <circle cx="22" cy="20" r="10" fill="none" stroke="#6366f1" stroke-width="1.2"/>
+    <text x="22" y="25" text-anchor="middle" font-family="Caveat, 'Segoe Print', cursive" font-size="13" font-weight="700" fill="#6366f1">P</text>
+    <text x="42" y="17" font-family="Caveat, 'Segoe Print', cursive" font-size="16" font-weight="700" fill="#1a1a1a">skill-tools-plugin</text>
+    <text x="42" y="33" font-family="Caveat, 'Segoe Print', cursive" font-size="13" fill="#888">Claude Code auto-lint hook</text>
+  </g>
+
+  <!-- skills.menu -->
+  <g transform="translate(480, 254)" filter="url(#pencil)">
+    <path d="M 22 0 Q 0 0, 0 20 Q 0 40, 22 40 L 258 40 Q 280 40, 280 20 Q 280 0, 258 0 Z" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+  </g>
+  <g transform="translate(480, 254)">
+    <circle cx="22" cy="20" r="10" fill="none" stroke="#10b981" stroke-width="1.2"/>
+    <text x="22" y="25" text-anchor="middle" font-family="Caveat, 'Segoe Print', cursive" font-size="13" font-weight="700" fill="#10b981">S</text>
+    <text x="42" y="17" font-family="Caveat, 'Segoe Print', cursive" font-size="16" font-weight="700" fill="#1a1a1a">skills.menu</text>
+    <text x="42" y="33" font-family="Caveat, 'Segoe Print', cursive" font-size="13" fill="#888">Docs, playground, and catalog</text>
+  </g>
+
+  <!-- Small annotation in corner -->
+  <text x="860" y="330" text-anchor="end" font-family="Caveat, 'Segoe Print', cursive" font-size="11" fill="#ccc">v0.2.2</text>
+</svg>
