@@ -1,5 +1,11 @@
 # @skill-tools/gen
 
+## 0.3.0
+
+### Minor Changes
+
+- [`e648eec`](https://github.com/skill-tools/skill-tools/commit/e648eec36abb019e1fdbe323485d776fd508ad90) Thanks [@pyyush](https://github.com/pyyush)! - Add `skillgen mcp` command for generating SKILL.md from MCP servers. Connects via stdio or HTTP/SSE transport, introspects tools, clusters by domain, and outputs a lean SKILL.md with grouped tool tables plus a full `references/TOOLS.md`.
+
 ## 0.2.2
 
 ### Patch Changes
