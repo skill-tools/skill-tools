@@ -1,13 +1,32 @@
 /**
  * skillgen — Generate Agent Skills (SKILL.md) from API specifications
  *
- * Converts OpenAPI 3.x specs, REST API documentation, or plain text
+ * Converts OpenAPI 3.x specs, MCP servers, REST API documentation, or plain text
  * descriptions into well-structured SKILL.md files.
  *
  * @packageDocumentation
  */
 
-export { generateFromOpenApi, generateFromSpec, generateFromText } from './generator.js';
+export {
+	generateFromMcp,
+	generateFromMcpSpec,
+	generateFromOpenApi,
+	generateFromSpec,
+	generateFromText,
+} from './generator.js';
+export { clusterTools, introspectMcpServer, parseMcpToolsJson } from './mcp.js';
+export { renderMcpSkillMd } from './mcp-renderer.js';
+export type {
+	McpConnectionOptions,
+	McpGenerateOptions,
+	McpGenerateResult,
+	McpSchemaProperty,
+	McpServerSpec,
+	McpToolAnnotations,
+	McpToolGroup,
+	McpToolInputSchema,
+	McpToolSpec,
+} from './mcp-types.js';
 export { parseOpenApi } from './openapi.js';
 export { renderSkillMd } from './renderer.js';
 export type {

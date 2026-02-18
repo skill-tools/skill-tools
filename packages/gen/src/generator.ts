@@ -1,5 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { countTokens } from '@skill-tools/core';
+import { introspectMcpServer } from './mcp.js';
+import { renderMcpSkillMd } from './mcp-renderer.js';
+import type {
+	McpConnectionOptions,
+	McpGenerateOptions,
+	McpGenerateResult,
+	McpServerSpec,
+} from './mcp-types.js';
 import { parseOpenApi } from './openapi.js';
 import { renderSkillMd } from './renderer.js';
 import type { ApiSpec, GenerateError, GenerateOptions, GenerateResult } from './types.js';
@@ -58,6 +66,60 @@ export function generateFromSpec(
 			ok: true,
 			files,
 			endpointCount: spec.endpoints.length,
+			tokenCount: totalTokens,
+		};
+	} catch (err) {
+		return {
+			ok: false,
+			error: err instanceof Error ? err.message : String(err),
+		};
+	}
+}
+
+/**
+ * Generate SKILL.md files by connecting to a live MCP server and introspecting its tools.
+ *
+ * @param connectionOptions - How to connect (command/url)
+ * @param generateOptions - Generation options (name, outDir, etc.)
+ * @returns Generation result with files map, or an error
+ */
+export async function generateFromMcp(
+	connectionOptions: McpConnectionOptions,
+	generateOptions: McpGenerateOptions = {},
+): Promise<McpGenerateResult | GenerateError> {
+	try {
+		const spec = await introspectMcpServer(connectionOptions);
+		return generateFromMcpSpec(spec, generateOptions);
+	} catch (err) {
+		return {
+			ok: false,
+			error: err instanceof Error ? err.message : String(err),
+		};
+	}
+}
+
+/**
+ * Generate SKILL.md files from a pre-parsed {@link McpServerSpec}.
+ *
+ * Useful for testing and for consumers who already have the spec.
+ */
+export function generateFromMcpSpec(
+	spec: McpServerSpec,
+	options: McpGenerateOptions = {},
+): McpGenerateResult | GenerateError {
+	try {
+		const files = renderMcpSkillMd(spec, options);
+
+		let totalTokens = 0;
+		for (const content of files.values()) {
+			totalTokens += countTokens(content);
+		}
+
+		return {
+			ok: true,
+			files,
+			toolCount: spec.toolCount,
+			groupCount: spec.groups.length,
 			tokenCount: totalTokens,
 		};
 	} catch (err) {
