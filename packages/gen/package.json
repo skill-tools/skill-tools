@@ -1,6 +1,6 @@
 {
 	"name": "@skill-tools/gen",
-	"version": "0.2.2",
+	"version": "0.3.0",
 	"description": "Generate Agent Skills (SKILL.md) from OpenAPI specs, MCP servers, REST APIs, and text descriptions",
 	"type": "module",
 	"license": "Apache-2.0",
