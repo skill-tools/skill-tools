@@ -1,0 +1,263 @@
+{
+	"tools": [
+		{
+			"name": "create_issue",
+			"description": "Create a new issue in a GitHub repository",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"title": { "type": "string", "description": "Issue title" },
+					"body": { "type": "string", "description": "Issue body (markdown supported)" },
+					"labels": {
+						"type": "array",
+						"items": { "type": "string" },
+						"description": "Labels to apply"
+					},
+					"assignees": {
+						"type": "array",
+						"items": { "type": "string" },
+						"description": "GitHub usernames to assign"
+					}
+				},
+				"required": ["owner", "repo", "title"]
+			}
+		},
+		{
+			"name": "get_issue",
+			"description": "Get details of a specific issue by number",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"issue_number": { "type": "integer", "description": "Issue number" }
+				},
+				"required": ["owner", "repo", "issue_number"]
+			}
+		},
+		{
+			"name": "update_issue",
+			"description": "Update an existing issue",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"issue_number": { "type": "integer", "description": "Issue number" },
+					"title": { "type": "string", "description": "New issue title" },
+					"body": { "type": "string", "description": "New issue body" },
+					"state": {
+						"type": "string",
+						"enum": ["open", "closed"],
+						"description": "Issue state"
+					}
+				},
+				"required": ["owner", "repo", "issue_number"]
+			}
+		},
+		{
+			"name": "list_issues",
+			"description": "List issues in a repository with optional filters",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"state": {
+						"type": "string",
+						"enum": ["open", "closed", "all"],
+						"default": "open",
+						"description": "Filter by state"
+					},
+					"labels": { "type": "string", "description": "Comma-separated label names" },
+					"per_page": {
+						"type": "integer",
+						"description": "Results per page (max 100)",
+						"default": 30
+					}
+				},
+				"required": ["owner", "repo"]
+			}
+		},
+		{
+			"name": "add_issue_comment",
+			"description": "Add a comment to an existing issue",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"issue_number": { "type": "integer", "description": "Issue number" },
+					"body": { "type": "string", "description": "Comment body (markdown supported)" }
+				},
+				"required": ["owner", "repo", "issue_number", "body"]
+			}
+		},
+		{
+			"name": "create_pull_request",
+			"description": "Create a new pull request",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"title": { "type": "string", "description": "PR title" },
+					"body": { "type": "string", "description": "PR description" },
+					"head": { "type": "string", "description": "Branch with changes" },
+					"base": { "type": "string", "description": "Branch to merge into" }
+				},
+				"required": ["owner", "repo", "title", "head", "base"]
+			}
+		},
+		{
+			"name": "merge_pull_request",
+			"description": "Merge a pull request",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"pull_number": { "type": "integer", "description": "Pull request number" },
+					"merge_method": {
+						"type": "string",
+						"enum": ["merge", "squash", "rebase"],
+						"default": "merge",
+						"description": "Merge method to use"
+					}
+				},
+				"required": ["owner", "repo", "pull_number"]
+			},
+			"annotations": {
+				"destructiveHint": true
+			}
+		},
+		{
+			"name": "list_pull_requests",
+			"description": "List pull requests in a repository",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"state": {
+						"type": "string",
+						"enum": ["open", "closed", "all"],
+						"default": "open",
+						"description": "Filter by state"
+					}
+				},
+				"required": ["owner", "repo"]
+			},
+			"annotations": {
+				"readOnlyHint": true
+			}
+		},
+		{
+			"name": "get_repository",
+			"description": "Get repository details",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" }
+				},
+				"required": ["owner", "repo"]
+			},
+			"annotations": {
+				"readOnlyHint": true,
+				"idempotentHint": true
+			}
+		},
+		{
+			"name": "search_repositories",
+			"description": "Search for repositories on GitHub",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"query": { "type": "string", "description": "Search query" },
+					"per_page": { "type": "integer", "description": "Results per page", "default": 30 }
+				},
+				"required": ["query"]
+			}
+		},
+		{
+			"name": "create_repository",
+			"description": "Create a new GitHub repository",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"name": { "type": "string", "description": "Repository name" },
+					"description": { "type": "string", "description": "Repository description" },
+					"private": { "type": "boolean", "description": "Whether the repo is private", "default": false }
+				},
+				"required": ["name"]
+			}
+		},
+		{
+			"name": "fork_repository",
+			"description": "Fork a repository to your account",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" }
+				},
+				"required": ["owner", "repo"]
+			}
+		},
+		{
+			"name": "get_file_contents",
+			"description": "Get the contents of a file in a repository",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"path": { "type": "string", "description": "File path" },
+					"ref": { "type": "string", "description": "Branch or commit SHA" }
+				},
+				"required": ["owner", "repo", "path"]
+			}
+		},
+		{
+			"name": "push_files",
+			"description": "Push multiple files to a repository in a single commit",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"owner": { "type": "string", "description": "Repository owner" },
+					"repo": { "type": "string", "description": "Repository name" },
+					"branch": { "type": "string", "description": "Target branch" },
+					"message": { "type": "string", "description": "Commit message" },
+					"files": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"path": { "type": "string" },
+								"content": { "type": "string" }
+							},
+							"required": ["path", "content"]
+						},
+						"description": "Files to push"
+					}
+				},
+				"required": ["owner", "repo", "branch", "message", "files"]
+			}
+		},
+		{
+			"name": "search_code",
+			"description": "Search for code across GitHub repositories",
+			"inputSchema": {
+				"type": "object",
+				"properties": {
+					"query": { "type": "string", "description": "Search query" },
+					"per_page": { "type": "integer", "description": "Results per page", "default": 30 }
+				},
+				"required": ["query"]
+			}
+		}
+	]
+}
