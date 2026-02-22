@@ -13,7 +13,8 @@ const program = new Command();
 program
 	.name('skill-tools')
 	.description('Validate, lint, and score Agent Skills (SKILL.md) files')
-	.version('0.2.1');
+	// TODO: read from package.json at build time
+	.version('0.2.2');
 
 // --- validate command ---
 

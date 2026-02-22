@@ -358,14 +358,37 @@ export function parseSkillContent(
 	// Build metadata from all frontmatter fields
 	const knownFields = ['name', 'description', 'version', 'license', 'compatibility'];
 	const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
+
+	/**
+	 * Recursively strip dangerous keys (__proto__, constructor, prototype) at
+	 * all nesting levels to prevent prototype-pollution via crafted YAML.
+	 */
+	function sanitizeObject(obj: unknown): unknown {
+		if (Array.isArray(obj)) return obj.map(sanitizeObject);
+		if (obj && typeof obj === 'object') {
+			return Object.fromEntries(
+				Object.entries(obj)
+					.filter(([k]) => !dangerousKeys.has(k))
+					.map(([k, v]) => [k, sanitizeObject(v)]),
+			);
+		}
+		return obj;
+	}
+
+	const sanitizedData = sanitizeObject(data) as Record<string, unknown>;
+
 	const metadata: SkillMetadata = {
-		...(typeof data.name === 'string' ? { name: data.name } : {}),
-		...(typeof data.description === 'string' ? { description: data.description } : {}),
-		...(data.version != null ? { version: String(data.version) } : {}),
-		...(typeof data.license === 'string' ? { license: data.license } : {}),
-		...(typeof data.compatibility === 'string' ? { compatibility: data.compatibility } : {}),
+		...(typeof sanitizedData.name === 'string' ? { name: sanitizedData.name } : {}),
+		...(typeof sanitizedData.description === 'string'
+			? { description: sanitizedData.description }
+			: {}),
+		...(sanitizedData.version != null ? { version: String(sanitizedData.version) } : {}),
+		...(typeof sanitizedData.license === 'string' ? { license: sanitizedData.license } : {}),
+		...(typeof sanitizedData.compatibility === 'string'
+			? { compatibility: sanitizedData.compatibility }
+			: {}),
 		...Object.fromEntries(
-			Object.entries(data).filter(([k]) => !knownFields.includes(k) && !dangerousKeys.has(k)),
+			Object.entries(sanitizedData).filter(([k]) => !knownFields.includes(k)),
 		),
 	};
 

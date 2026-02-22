@@ -80,26 +80,49 @@ function parseDocument(content: string): OpenApiDoc {
 
 /**
  * Resolve a local $ref like "#/components/schemas/Pet".
+ * Tracks visited refs to detect circular references.
  */
-function resolveRef(doc: OpenApiDoc, ref: string): Record<string, unknown> {
+function resolveRef(
+	doc: OpenApiDoc,
+	ref: string,
+	visited: Set<string> = new Set(),
+): Record<string, unknown> {
 	if (!ref.startsWith('#/')) {
 		return {};
 	}
+	if (visited.has(ref)) {
+		throw new Error(`Circular $ref detected: ${ref}`);
+	}
+	visited.add(ref);
+
 	const path = ref.slice(2).split('/');
 	let current: unknown = doc;
 	for (const segment of path) {
 		if (current == null || typeof current !== 'object') return {};
 		current = (current as Record<string, unknown>)[segment];
 	}
-	return (current as Record<string, unknown>) ?? {};
+
+	const resolved = (current as Record<string, unknown>) ?? {};
+
+	// If the resolved object itself contains a $ref, follow it (with cycle tracking)
+	if (typeof resolved.$ref === 'string') {
+		return resolveRef(doc, resolved.$ref, visited);
+	}
+
+	return resolved;
 }
 
 /**
  * If obj has a $ref, resolve it. Otherwise return obj as-is.
+ * Passes a visited Set through to detect circular references.
  */
-function deref(doc: OpenApiDoc, obj: Record<string, unknown>): Record<string, unknown> {
+function deref(
+	doc: OpenApiDoc,
+	obj: Record<string, unknown>,
+	visited?: Set<string>,
+): Record<string, unknown> {
 	if (typeof obj.$ref === 'string') {
-		return resolveRef(doc, obj.$ref);
+		return resolveRef(doc, obj.$ref, visited ?? new Set());
 	}
 	return obj;
 }

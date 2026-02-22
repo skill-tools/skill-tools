@@ -41,8 +41,13 @@ runs:
 
     - name: Run skill-tools check
       shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_MIN_SCORE: ${{ inputs.min-score }}
       run: |
-        skill-tools check "${{ inputs.path }}" \
-          --format "${{ inputs.format }}" \
-          --fail-on "${{ inputs.fail-on }}" \
-          --min-score "${{ inputs.min-score }}"
+        skill-tools check "$INPUT_PATH" \
+          --format "$INPUT_FORMAT" \
+          --fail-on "$INPUT_FAIL_ON" \
+          --min-score "$INPUT_MIN_SCORE"

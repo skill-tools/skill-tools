@@ -11,7 +11,8 @@ const program = new Command();
 program
 	.name('skillgen')
 	.description('Generate Agent Skills (SKILL.md) from API specifications')
-	.version('0.2.0');
+	// TODO: read from package.json at build time
+	.version('0.3.0');
 
 program
 	.command('openapi')
