@@ -234,3 +234,91 @@ Body.
 		expect(nameError).toBeDefined();
 	});
 });
+
+describe('prototype pollution protection', () => {
+	it('strips __proto__ keys from frontmatter before validation', () => {
+		const content = `---
+name: safe-skill
+description: A skill that tests prototype pollution protection
+__proto__:
+  polluted: true
+---
+
+# Instructions
+
+Do the thing.
+`;
+		// Capture Object.prototype state before parsing
+		const before = Object.getOwnPropertyDescriptor(Object.prototype, 'polluted');
+
+		const result = parseSkillContent(content, '/fake/SKILL.md', '/fake');
+
+		// Object.prototype must NOT be polluted
+		const after = Object.getOwnPropertyDescriptor(Object.prototype, 'polluted');
+		expect(after).toBeUndefined();
+		expect(before).toBeUndefined();
+
+		// The skill should parse successfully (sanitization should not break parsing)
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+
+		// The __proto__ key must not appear in metadata
+		expect(result.skill.metadata).not.toHaveProperty('__proto__');
+		expect(result.skill.metadata.name).toBe('safe-skill');
+	});
+
+	it('strips constructor and prototype keys from nested frontmatter', () => {
+		const content = `---
+name: nested-safe
+description: Tests deep sanitization of dangerous keys
+config:
+  constructor:
+    evil: true
+  prototype:
+    also-evil: true
+  safe-key: safe-value
+---
+
+# Instructions
+
+Do the thing.
+`;
+		const result = parseSkillContent(content, '/fake/SKILL.md', '/fake');
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+
+		const config = result.skill.metadata.config as Record<string, unknown>;
+		expect(config).toBeDefined();
+		expect(config).not.toHaveProperty('constructor');
+		expect(config).not.toHaveProperty('prototype');
+		expect(config['safe-key']).toBe('safe-value');
+	});
+
+	it('strips dangerous keys from arrays in frontmatter', () => {
+		const content = `---
+name: array-safe
+description: Tests sanitization of objects inside arrays
+items:
+  - name: good
+    __proto__:
+      polluted: true
+  - name: also-good
+---
+
+# Instructions
+
+Do the thing.
+`;
+		const result = parseSkillContent(content, '/fake/SKILL.md', '/fake');
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+
+		const items = result.skill.metadata.items as Array<Record<string, unknown>>;
+		expect(items).toHaveLength(2);
+		expect(items[0]).not.toHaveProperty('__proto__');
+		expect(items[0]?.name).toBe('good');
+		expect(items[1]?.name).toBe('also-good');
+	});
+});

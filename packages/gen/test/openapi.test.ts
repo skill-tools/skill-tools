@@ -137,3 +137,158 @@ describe('parseOpenApi', () => {
 		expect(spec.servers).toHaveLength(0);
 	});
 });
+
+describe('$ref cycle detection', () => {
+	it('throws on a direct circular $ref (A -> B -> A)', () => {
+		const spec = JSON.stringify({
+			openapi: '3.0.0',
+			info: { title: 'Circular', version: '1.0.0' },
+			paths: {
+				'/test': {
+					get: {
+						operationId: 'test',
+						responses: {
+							'200': {
+								description: 'OK',
+								content: {
+									'application/json': {
+										schema: { $ref: '#/components/schemas/A' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			components: {
+				schemas: {
+					A: { $ref: '#/components/schemas/B' },
+					B: { $ref: '#/components/schemas/A' },
+				},
+			},
+		});
+
+		expect(() => parseOpenApi(spec)).toThrow(/Circular \$ref detected/);
+	});
+
+	it('throws on a 3-node circular $ref chain (A -> B -> C -> A)', () => {
+		const spec = JSON.stringify({
+			openapi: '3.0.0',
+			info: { title: 'Circular 3', version: '1.0.0' },
+			paths: {
+				'/test': {
+					get: {
+						operationId: 'test',
+						responses: {
+							'200': {
+								description: 'OK',
+								content: {
+									'application/json': {
+										schema: { $ref: '#/components/schemas/A' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			components: {
+				schemas: {
+					A: { $ref: '#/components/schemas/B' },
+					B: { $ref: '#/components/schemas/C' },
+					C: { $ref: '#/components/schemas/A' },
+				},
+			},
+		});
+
+		expect(() => parseOpenApi(spec)).toThrow(/Circular \$ref detected/);
+	});
+
+	it('throws when $ref depth limit is exceeded', () => {
+		// Build a chain of 25 schemas: S0 -> S1 -> S2 -> ... -> S24
+		// This exceeds MAX_REF_DEPTH (20)
+		const schemas: Record<string, unknown> = {};
+		for (let i = 0; i < 24; i++) {
+			schemas[`S${i}`] = { $ref: `#/components/schemas/S${i + 1}` };
+		}
+		schemas.S24 = { type: 'string' }; // terminal schema
+
+		const spec = JSON.stringify({
+			openapi: '3.0.0',
+			info: { title: 'Deep Chain', version: '1.0.0' },
+			paths: {
+				'/test': {
+					get: {
+						operationId: 'test',
+						responses: {
+							'200': {
+								description: 'OK',
+								content: {
+									'application/json': {
+										schema: { $ref: '#/components/schemas/S0' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			components: { schemas },
+		});
+
+		expect(() => parseOpenApi(spec)).toThrow(/\$ref depth limit exceeded/);
+	});
+
+	it('allows the same $ref to be used multiple times without false cycle detection', () => {
+		const spec = JSON.stringify({
+			openapi: '3.0.0',
+			info: { title: 'Shared Ref', version: '1.0.0' },
+			paths: {
+				'/pets': {
+					get: {
+						operationId: 'listPets',
+						responses: {
+							'200': {
+								description: 'OK',
+								content: {
+									'application/json': {
+										schema: { $ref: '#/components/schemas/Pet' },
+									},
+								},
+							},
+						},
+					},
+				},
+				'/pets/{id}': {
+					get: {
+						operationId: 'getPet',
+						responses: {
+							'200': {
+								description: 'OK',
+								content: {
+									'application/json': {
+										schema: { $ref: '#/components/schemas/Pet' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			components: {
+				schemas: {
+					Pet: {
+						type: 'object',
+						properties: {
+							name: { type: 'string' },
+						},
+					},
+				},
+			},
+		});
+
+		// Should NOT throw — the same $ref used in different endpoints is not a cycle
+		const result = parseOpenApi(spec);
+		expect(result.endpoints).toHaveLength(2);
+	});
+});
