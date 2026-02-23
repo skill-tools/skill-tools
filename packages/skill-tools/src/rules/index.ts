@@ -7,6 +7,7 @@ import { instructionsHasExamples } from './instructions-has-examples.js';
 import { noHardcodedPaths } from './no-hardcoded-paths.js';
 import { noSecrets } from './no-secrets.js';
 import { progressiveDisclosure } from './progressive-disclosure.js';
+import { sectionCountOptimal } from './section-count-optimal.js';
 import type { RuleDefinition } from './types.js';
 
 export type { RuleConfig, RuleDefinition, RulesConfig } from './types.js';
@@ -24,6 +25,7 @@ export const builtinRules: ReadonlyMap<string, RuleDefinition> = new Map([
 	[instructionsHasExamples.id, instructionsHasExamples],
 	[instructionsHasErrorHandling.id, instructionsHasErrorHandling],
 	[consistentHeadings.id, consistentHeadings],
+	[sectionCountOptimal.id, sectionCountOptimal],
 ]);
 
 /**

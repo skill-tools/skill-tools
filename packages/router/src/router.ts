@@ -45,7 +45,7 @@ export interface SelectionResult {
  * Options for skill selection queries.
  */
 export interface SelectOptions {
-	/** Number of results to return (default: 5) */
+	/** Number of results to return (default: 3) */
 	readonly topK?: number;
 	/** Minimum similarity threshold (default: 0.0) */
 	readonly threshold?: number;
@@ -209,7 +209,7 @@ export class SkillRouter {
 	 * Select the most relevant skills for a query.
 	 */
 	async select(query: string, options?: SelectOptions): Promise<SelectionResult[]> {
-		const topK = options?.topK ?? 5;
+		const topK = options?.topK ?? 3;
 		const threshold = options?.threshold ?? 0.0;
 		const boost = new Set(options?.boost ?? []);
 		const exclude = options?.exclude ?? [];

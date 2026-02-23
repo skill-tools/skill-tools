@@ -51,6 +51,19 @@ describe('score', () => {
 		}
 	});
 
+	it('rewards procedural signals in instruction clarity', async () => {
+		const parseResult = await parseSkill(resolve(FIXTURES, 'good-skill/SKILL.md'));
+		if (!parseResult.ok) throw new Error('Parse failed');
+
+		const result = score(parseResult.skill);
+		const clarity = result.dimensions.instruction_clarity;
+
+		// Good skill has numbered steps and imperative verbs → procedural signals > 0
+		expect(clarity).toBeDefined();
+		expect(clarity!.details).toMatch(/\d+ procedural signals/);
+		expect(clarity!.score).toBeGreaterThanOrEqual(5);
+	});
+
 	it('returns score between 0 and 100', async () => {
 		const parseResult = await parseSkill(resolve(FIXTURES, 'good-skill/SKILL.md'));
 		if (!parseResult.ok) throw new Error('Parse failed');

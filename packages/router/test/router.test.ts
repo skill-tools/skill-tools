@@ -59,6 +59,14 @@ describe('SkillRouter', () => {
 		expect(deploySkills.length).toBeGreaterThan(0);
 	});
 
+	it('defaults to returning at most 3 results', async () => {
+		const router = new SkillRouter();
+		await router.indexSkills(SAMPLE_SKILLS);
+
+		const results = await router.select('deploy my app');
+		expect(results.length).toBeLessThanOrEqual(3);
+	});
+
 	it('respects topK option', async () => {
 		const router = new SkillRouter();
 		await router.indexSkills(SAMPLE_SKILLS);

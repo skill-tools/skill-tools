@@ -110,6 +110,21 @@ function generateSuggestions(
 				dimension: 'instruction_clarity',
 			});
 		}
+
+		const imperativeVerbs =
+			/^(?:Run|Create|Add|Set|Configure|Install|Execute|Build|Check|Verify|Open|Navigate|Click|Enter|Select|Copy|Update|Remove|Delete|Enable|Disable|Start|Stop|Deploy)\b/;
+		const hasImperativeStarts = skill.body
+			.split('\n')
+			.some((line) => imperativeVerbs.test(line.trim()));
+		const hasSteps = /^\d+\.\s+/m.test(skill.body);
+		if (!hasImperativeStarts && !hasSteps) {
+			suggestions.push({
+				message:
+					'Use imperative verbs to make instructions procedural (e.g. "Run", "Create", "Configure")',
+				pointsGain: 3,
+				dimension: 'instruction_clarity',
+			});
+		}
 	}
 
 	// Spec compliance suggestions

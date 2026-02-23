@@ -16,6 +16,7 @@ describe('generateFromOpenApi', () => {
 		expect(result.files.size).toBe(1);
 		expect(result.endpointCount).toBe(5);
 		expect(result.tokenCount).toBeGreaterThan(0);
+		expect(Array.isArray(result.diagnostics)).toBe(true);
 	});
 
 	it('returns error for non-existent file', async () => {
@@ -82,6 +83,7 @@ describe('generateFromText', () => {
 
 		expect(result.ok).toBe(true);
 		expect(result.files.size).toBe(1);
+		expect(Array.isArray(result.diagnostics)).toBe(true);
 
 		const [path, content] = Array.from(result.files.entries())[0]!;
 		expect(path).toBe('deploy-vercel/SKILL.md');

@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { countTokens } from '@skill-tools/core';
+import { countTokens, type Diagnostic, parseSkillContent } from '@skill-tools/core';
 import { introspectMcpServer } from './mcp.js';
 import { renderMcpSkillMd } from './mcp-renderer.js';
 import type {
@@ -67,6 +67,7 @@ export function generateFromSpec(
 			files,
 			endpointCount: spec.endpoints.length,
 			tokenCount: totalTokens,
+			diagnostics: validateGeneratedFiles(files),
 		};
 	} catch (err) {
 		return {
@@ -121,6 +122,7 @@ export function generateFromMcpSpec(
 			toolCount: spec.toolCount,
 			groupCount: spec.groups.length,
 			tokenCount: totalTokens,
+			diagnostics: validateGeneratedFiles(files),
 		};
 	} catch (err) {
 		return {
@@ -175,5 +177,21 @@ export function generateFromText(
 		files,
 		endpointCount: 0,
 		tokenCount: countTokens(content),
+		diagnostics: validateGeneratedFiles(files),
 	};
+}
+
+/**
+ * Validate generated SKILL.md files by parsing them.
+ * Returns diagnostics without throwing — callers decide whether to surface warnings.
+ */
+function validateGeneratedFiles(files: ReadonlyMap<string, string>): Diagnostic[] {
+	const all: Diagnostic[] = [];
+	for (const [path, content] of files) {
+		if (!path.endsWith('SKILL.md')) continue;
+		const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '.';
+		const result = parseSkillContent(content, path, dir);
+		all.push(...result.diagnostics);
+	}
+	return all;
 }

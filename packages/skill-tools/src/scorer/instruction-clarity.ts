@@ -52,15 +52,45 @@ export function scoreInstructionClarity(skill: Skill): DimensionScore {
 		details.push('Error mentions');
 	}
 
-	// Body substance (0-6 points)
-	const wordCount = body.split(/\s+/).length;
-	if (wordCount >= 100) {
-		points += 6;
-	} else if (wordCount >= 50) {
-		points += 4;
-	} else if (wordCount >= 20) {
-		points += 2;
+	// Content quality (0-6 points): procedural signals + focused density
+
+	// Procedural signals (0-3 points)
+	const imperativeVerbs =
+		/^(?:Run|Create|Add|Set|Configure|Install|Execute|Build|Check|Verify|Open|Navigate|Click|Enter|Select|Copy|Update|Remove|Delete|Enable|Disable|Start|Stop|Deploy)\b/;
+	const lines = body.split('\n');
+	let imperativeStarts = 0;
+	for (const line of lines) {
+		if (imperativeVerbs.test(line.trim())) {
+			imperativeStarts++;
+		}
 	}
+	const conditionalPatterns = (body.match(/\b(?:if|when|unless|otherwise)\b/gi) ?? []).length;
+	const hasNumberedSteps = numberedSteps > 0;
+	const proceduralSignals =
+		imperativeStarts + conditionalPatterns + (hasNumberedSteps ? numberedSteps : 0);
+
+	let proceduralPoints = 0;
+	if (proceduralSignals >= 5) {
+		proceduralPoints = 3;
+	} else if (proceduralSignals >= 2) {
+		proceduralPoints = 2;
+	} else if (proceduralSignals >= 1) {
+		proceduralPoints = 1;
+	}
+	points += proceduralPoints;
+	details.push(`${proceduralSignals} procedural signals`);
+
+	// Focused density (0-3 points)
+	const wordCount = body.split(/\s+/).length;
+	let densityPoints = 0;
+	if (wordCount >= 50 && skill.tokenCount < 5000) {
+		densityPoints = 3;
+	} else if (wordCount >= 50) {
+		densityPoints = 1;
+	} else if (wordCount >= 20) {
+		densityPoints = 2;
+	}
+	points += densityPoints;
 	details.push(`${wordCount} words`);
 
 	return {
