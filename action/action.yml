@@ -1,48 +1,40 @@
-name: 'skill-tools - Agent Skills Quality Check'
-description: 'Validate, lint, and score Agent Skills (SKILL.md) files in CI'
-author: 'Piyush Vyas'
+name: 'skill-tools check'
+description: 'Validate, lint, and score SKILL.md files'
 branding:
   icon: 'check-circle'
-  color: 'green'
+  color: 'blue'
 
 inputs:
   path:
-    description: 'Path to skill directory or SKILL.md file'
+    description: 'Path to SKILL.md files or directories'
     required: false
     default: '.'
   min-score:
-    description: 'Minimum quality score (0-100). Fails if any skill scores below.'
+    description: 'Minimum quality score (0-100)'
     required: false
     default: '0'
   fail-on:
-    description: 'Minimum severity to fail on: error, warning, or info'
+    description: 'Severity threshold to fail: error, warning, or info'
     required: false
     default: 'error'
-  format:
-    description: 'Output format: text or json'
+  version:
+    description: 'skill-tools version to use'
     required: false
-    default: 'text'
-  node-version:
-    description: 'Node.js version to use'
-    required: false
-    default: '18'
+    default: '0.2.2'
 
 runs:
   using: 'composite'
   steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ inputs.node-version }}
-
-    - name: Install skill-tools
+    - name: Check SKILL.md files
       shell: bash
-      run: npm install -g skill-tools@latest
-
-    - name: Run skill-tools check
-      shell: bash
+      env:
+        SKILL_TOOLS_VERSION: ${{ inputs.version }}
+        SKILL_TOOLS_PATH: ${{ inputs.path }}
+        SKILL_TOOLS_FAIL_ON: ${{ inputs.fail-on }}
+        SKILL_TOOLS_MIN_SCORE: ${{ inputs.min-score }}
       run: |
-        skill-tools check "${{ inputs.path }}" \
-          --format "${{ inputs.format }}" \
-          --fail-on "${{ inputs.fail-on }}" \
-          --min-score "${{ inputs.min-score }}"
+        npx "skill-tools@${SKILL_TOOLS_VERSION}" check \
+          "${SKILL_TOOLS_PATH}" \
+          --format text \
+          --fail-on "${SKILL_TOOLS_FAIL_ON}" \
+          --min-score "${SKILL_TOOLS_MIN_SCORE}"

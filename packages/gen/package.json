@@ -61,6 +61,7 @@
 	"dependencies": {
 		"@skill-tools/core": "workspace:*",
 		"commander": "^13.1.0",
+		"skill-tools": "workspace:*",
 		"yaml": "^2.7.0"
 	},
 	"peerDependencies": {

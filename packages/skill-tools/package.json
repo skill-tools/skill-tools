@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@skill-tools/core": "workspace:*",
+    "@skill-tools/router": "workspace:*",
     "commander": "^13.1.0"
   },
   "devDependencies": {

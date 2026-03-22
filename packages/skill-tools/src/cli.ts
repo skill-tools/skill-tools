@@ -1,19 +1,26 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
+import { SkillRouter } from '@skill-tools/router';
 import { Command } from 'commander';
 import { formatLintJson, formatScoreJson, formatValidationJson } from './formatters/json.js';
+import { formatConflictsJson, formatRouteJson } from './formatters/route-json.js';
+import { formatConflicts, formatRouteResults } from './formatters/route-text.js';
 import { formatLint, formatScore, formatValidation } from './formatters/text.js';
+import { formatWatchResult } from './formatters/watch-text.js';
+import { installPreCommitHook } from './hooks.js';
 import { lint } from './linter.js';
+import { toSarif } from './sarif.js';
 import { score } from './scorer/index.js';
 import { validate } from './validator.js';
+import { watchSkills } from './watcher.js';
 
 const program = new Command();
 
 program
 	.name('skill-tools')
 	.description('Validate, lint, and score Agent Skills (SKILL.md) files')
-	.version('0.2.1');
+	.version('0.2.2');
 
 // --- validate command ---
 
@@ -143,7 +150,7 @@ program
 	.alias('c')
 	.description('Run validate + lint + score in a single pass')
 	.argument('<path>', 'Path to SKILL.md file, skill directory, or directory of skills')
-	.option('-f, --format <format>', 'Output format: text or json', 'text')
+	.option('-f, --format <format>', 'Output format: text, json, or sarif', 'text')
 	.option(
 		'--fail-on <severity>',
 		'Fail if any diagnostic has this severity or higher: error, warning, info',
@@ -158,50 +165,53 @@ program
 		const validationResults = await validate(path);
 		const validateElapsed = performance.now() - start;
 
-		if (opts.format === 'json') {
-			console.log(formatValidationJson(validationResults));
-		} else {
-			console.log(formatValidation(validationResults, validateElapsed));
-		}
-
 		// Lint and score only valid skills
 		const validSkills = validationResults.filter((r) => r.valid && r.skill);
 		let anyBelowMin = false;
 		const failSeverities = getFailSeverities(opts.failOn);
 		let hasLintFails = false;
+		const allLintResults: ReturnType<typeof lint>[] = [];
+		const allScores: Array<{ name: string; qualityScore: ReturnType<typeof score> }> = [];
 
 		for (const result of validSkills) {
 			const skill = result.skill!;
-
-			// Lint
-			const lintStart = performance.now();
 			const lintResult = lint(skill);
-			const lintElapsed = performance.now() - lintStart;
-
-			if (opts.format === 'json') {
-				console.log(formatLintJson([lintResult]));
-			} else {
-				console.log(formatLint([lintResult], lintElapsed));
-			}
+			allLintResults.push(lintResult);
 
 			if (lintResult.diagnostics.some((d) => failSeverities.has(d.severity))) {
 				hasLintFails = true;
 			}
 
-			// Score
-			const scoreStart = performance.now();
 			const qualityScore = score(skill);
-			const scoreElapsed = performance.now() - scoreStart;
 			const name = skill.metadata.name ?? result.name;
-
-			if (opts.format === 'json') {
-				console.log(formatScoreJson(name, qualityScore));
-			} else {
-				console.log(formatScore(name, qualityScore, scoreElapsed));
-			}
-
+			allScores.push({ name, qualityScore });
 			if (qualityScore.score < minScore) {
 				anyBelowMin = true;
+			}
+		}
+
+		// Output based on format
+		if (opts.format === 'sarif') {
+			console.log(JSON.stringify(toSarif(validationResults, allLintResults), null, 2));
+		} else {
+			if (opts.format === 'json') {
+				console.log(formatValidationJson(validationResults));
+			} else {
+				console.log(formatValidation(validationResults, validateElapsed));
+			}
+
+			for (let i = 0; i < validSkills.length; i++) {
+				const lintResult = allLintResults[i]!;
+				const { name, qualityScore } = allScores[i]!;
+				const elapsed = performance.now() - start;
+
+				if (opts.format === 'json') {
+					console.log(formatLintJson([lintResult]));
+					console.log(formatScoreJson(name, qualityScore));
+				} else {
+					console.log(formatLint([lintResult], elapsed));
+					console.log(formatScore(name, qualityScore, elapsed));
+				}
 			}
 		}
 
@@ -385,6 +395,190 @@ program
 			}
 			xmlLines.push('</available_skills>');
 			console.log(xmlLines.join('\n'));
+		}
+	});
+
+// --- route command ---
+
+program
+	.command('route')
+	.alias('r')
+	.description('Route queries to the most relevant skills using BM25 search')
+	.argument('[query]', 'Query to match against indexed skills')
+	.option('-s, --skills <path>', 'Path to skills directory to index')
+	.option('--index <path>', 'Path to skills directory to build index from')
+	.option('--save <file>', 'Save index snapshot to JSON file')
+	.option('--load <file>', 'Load index snapshot from JSON file')
+	.option('--conflicts', 'Detect conflicting/overlapping skills')
+	.option('-k, --top-k <n>', 'Number of results to return', '3')
+	.option('--threshold <n>', 'Minimum score threshold', '0')
+	.option('-f, --format <format>', 'Output format: text or json', 'text')
+	.action(
+		async (
+			query: string | undefined,
+			opts: {
+				skills?: string;
+				index?: string;
+				save?: string;
+				load?: string;
+				conflicts?: boolean;
+				topK: string;
+				threshold: string;
+				format: string;
+			},
+		) => {
+			const start = performance.now();
+
+			// --- Conflicts mode ---
+			if (opts.conflicts) {
+				const dirPath = opts.skills ?? opts.index;
+				if (!dirPath) {
+					console.error('--conflicts requires --skills or --index <path>');
+					process.exitCode = 1;
+					return;
+				}
+
+				const router = new SkillRouter();
+				const count = await router.indexDirectory(resolve(dirPath));
+				if (count === 0) {
+					console.error(`No skills found at: ${dirPath}`);
+					process.exitCode = 1;
+					return;
+				}
+
+				const conflicts = await router.detectConflicts();
+				const elapsed = performance.now() - start;
+				const output =
+					opts.format === 'json'
+						? formatConflictsJson(conflicts)
+						: formatConflicts(conflicts, elapsed);
+				console.log(output);
+				process.exitCode = conflicts.length > 0 ? 1 : 0;
+				return;
+			}
+
+			// --- Index + save mode ---
+			if (opts.index && opts.save && !query) {
+				const router = new SkillRouter();
+				const count = await router.indexDirectory(resolve(opts.index));
+				if (count === 0) {
+					console.error(`No skills found at: ${opts.index}`);
+					process.exitCode = 1;
+					return;
+				}
+
+				const snapshot = router.save();
+				await writeFile(resolve(opts.save), JSON.stringify(snapshot, null, 2), 'utf-8');
+				const elapsed = performance.now() - start;
+				console.log(
+					`Indexed ${count} skills, snapshot saved to ${opts.save} (${elapsed.toFixed(1)}ms)`,
+				);
+				return;
+			}
+
+			// --- Query mode ---
+			if (!query) {
+				console.error('A query argument is required (or use --conflicts or --index --save)');
+				process.exitCode = 1;
+				return;
+			}
+
+			const topK = Number.parseInt(opts.topK, 10);
+			const threshold = Number.parseFloat(opts.threshold);
+
+			const router = new SkillRouter();
+
+			if (opts.load) {
+				const raw = await readFile(resolve(opts.load), 'utf-8');
+				const snapshot = JSON.parse(raw);
+				router.load(snapshot);
+			} else {
+				const dirPath = opts.skills ?? opts.index;
+				if (!dirPath) {
+					console.error('Query mode requires --skills <path> or --load <file>');
+					process.exitCode = 1;
+					return;
+				}
+				const count = await router.indexDirectory(resolve(dirPath));
+				if (count === 0) {
+					console.error(`No skills found at: ${dirPath}`);
+					process.exitCode = 1;
+					return;
+				}
+			}
+
+			const results = await router.select(query, { topK, threshold });
+			const elapsed = performance.now() - start;
+
+			const output =
+				opts.format === 'json'
+					? formatRouteJson(results)
+					: formatRouteResults(results, query, elapsed);
+			console.log(output);
+			process.exitCode = results.length === 0 ? 1 : 0;
+		},
+	);
+
+// --- watch command ---
+
+program
+	.command('watch')
+	.alias('w')
+	.description('Watch SKILL.md files for changes and re-run validate + lint + score')
+	.argument('<path>', 'Path to skill directory or directory of skills')
+	.option('-f, --format <format>', 'Output format: text or json', 'text')
+	.option('--debounce <ms>', 'Debounce interval in milliseconds', '300')
+	.action((path: string, opts: { format: string; debounce: string }) => {
+		const debounceMs = Number.parseInt(opts.debounce, 10);
+
+		const handle = watchSkills(
+			path,
+			{ debounceMs },
+			(result) => {
+				if (opts.format === 'json') {
+					const jsonResult = {
+						...result,
+						previousScores: Object.fromEntries(result.previousScores),
+					};
+					console.log(JSON.stringify(jsonResult, null, 2));
+				} else {
+					console.log(formatWatchResult(result));
+				}
+			},
+			(err) => {
+				console.error(`Watch error: ${err.message}`);
+			},
+		);
+
+		process.on('SIGINT', () => {
+			handle.close();
+			console.log('\nStopped watching.');
+			process.exit(0);
+		});
+	});
+
+// --- hook command ---
+
+const hook = program.command('hook').description('Git hook management');
+
+hook
+	.command('install')
+	.description('Install a pre-commit hook that checks staged SKILL.md files')
+	.option('--min-score <n>', 'Minimum score threshold for the hook', '0')
+	.option('--fail-on <severity>', 'Severity threshold: error, warning, info', 'error')
+	.option('--git-dir <path>', 'Path to .git directory', '.git')
+	.action(async (opts: { minScore: string; failOn: string; gitDir: string }) => {
+		const result = await installPreCommitHook(resolve(opts.gitDir), {
+			minScore: Number.parseInt(opts.minScore, 10),
+			failOn: opts.failOn,
+		});
+
+		if (result.appended) {
+			console.log(`Appended skill-tools hook to ${result.path}`);
+		} else if (result.alreadyPresent) {
+			console.log(`Hook already installed at ${result.path}`);
+		} else {
+			console.log(`Installed pre-commit hook at ${result.path}`);
 		}
 	});
 

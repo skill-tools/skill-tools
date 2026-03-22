@@ -41,3 +41,7 @@ export type {
 	GenerateOptions,
 	GenerateResult,
 } from './types.js';
+export { checkGeneratedFiles } from './check.js';
+export type { CheckResult } from './check.js';
+export { analyzeSkill } from './improve.js';
+export type { ImproveResult, ImprovedSuggestion } from './improve.js';
