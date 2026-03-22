@@ -15,6 +15,11 @@ export type {
 	Skill,
 	SkillMetadata,
 } from '@skill-tools/core';
+export { formatConflictsJson, formatRouteJson } from './formatters/route-json.js';
+export { formatConflicts, formatRouteResults } from './formatters/route-text.js';
+export { formatWatchResult } from './formatters/watch-text.js';
+export type { HookInstallResult, HookOptions } from './hooks.js';
+export { generatePreCommitHook, installPreCommitHook } from './hooks.js';
 export type { LintResult } from './linter.js';
 export { lint, parseRulesConfig } from './linter.js';
 export type {
@@ -31,11 +36,12 @@ export type {
 export { benchmarkRepositories, benchmarkRepository } from './repository-benchmark.js';
 export type { RuleConfig, RuleDefinition, RulesConfig } from './rules/index.js';
 export { builtinRules, recommendedConfig } from './rules/index.js';
+export { toSarif } from './sarif.js';
 export { score } from './scorer/index.js';
 export type {
 	SkillsShEntry,
-	SkillsShNormalizeOptions,
 	SkillsShNormalizationResult,
+	SkillsShNormalizeOptions,
 	SkillsShRawEntry,
 	SkillsShRepositoryRecord,
 } from './skills-sh.js';
@@ -45,13 +51,7 @@ export {
 	parseSkillsShTotalCount,
 	toBenchmarkRepositorySources,
 } from './skills-sh.js';
-export { formatConflicts, formatRouteResults } from './formatters/route-text.js';
-export type { HookInstallResult, HookOptions } from './hooks.js';
-export { generatePreCommitHook, installPreCommitHook } from './hooks.js';
-export { toSarif } from './sarif.js';
-export { formatWatchResult } from './formatters/watch-text.js';
-export type { WatchHandle, WatchOptions, WatchResult } from './watcher.js';
-export { watchSkills } from './watcher.js';
-export { formatConflictsJson, formatRouteJson } from './formatters/route-json.js';
 export type { ValidationResult } from './validator.js';
 export { validate } from './validator.js';
+export type { WatchHandle, WatchOptions, WatchResult } from './watcher.js';
+export { watchSkills } from './watcher.js';

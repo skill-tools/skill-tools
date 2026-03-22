@@ -1,11 +1,11 @@
-import { watch, type FSWatcher } from 'node:fs';
+import { type FSWatcher, watch } from 'node:fs';
 import { resolve } from 'node:path';
 import type { QualityScore } from '@skill-tools/core';
-import { lint } from './linter.js';
 import type { LintResult } from './linter.js';
+import { lint } from './linter.js';
 import { score } from './scorer/index.js';
-import { validate } from './validator.js';
 import type { ValidationResult } from './validator.js';
+import { validate } from './validator.js';
 
 export interface WatchOptions {
 	readonly debounceMs: number;
@@ -77,6 +77,7 @@ export function watchSkills(
 
 	let watcher: FSWatcher;
 	try {
+		// recursive watch is supported on macOS/Windows natively; Linux requires Node 20+
 		watcher = watch(resolvedPath, { recursive: true }, (_event, filename) => {
 			if (!filename || !filename.endsWith('SKILL.md')) return;
 
@@ -86,8 +87,20 @@ export function watchSkills(
 			}, options.debounceMs);
 		});
 	} catch (err) {
-		onError(err instanceof Error ? err : new Error(String(err)));
-		return { close() {} };
+		// Fallback: watch without recursive (single directory only)
+		try {
+			watcher = watch(resolvedPath, (_event, filename) => {
+				if (!filename || !filename.endsWith('SKILL.md')) return;
+
+				if (debounceTimer) clearTimeout(debounceTimer);
+				debounceTimer = setTimeout(() => {
+					runCheck(filename);
+				}, options.debounceMs);
+			});
+		} catch (fallbackErr) {
+			onError(fallbackErr instanceof Error ? fallbackErr : new Error(String(fallbackErr)));
+			return { close() {} };
+		}
 	}
 
 	return {

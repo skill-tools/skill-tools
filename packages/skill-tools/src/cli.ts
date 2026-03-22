@@ -174,7 +174,8 @@ program
 		const allScores: Array<{ name: string; qualityScore: ReturnType<typeof score> }> = [];
 
 		for (const result of validSkills) {
-			const skill = result.skill!;
+			if (!result.skill) continue;
+			const skill = result.skill;
 			const lintResult = lint(skill);
 			allLintResults.push(lintResult);
 
@@ -200,9 +201,11 @@ program
 				console.log(formatValidation(validationResults, validateElapsed));
 			}
 
-			for (let i = 0; i < validSkills.length; i++) {
-				const lintResult = allLintResults[i]!;
-				const { name, qualityScore } = allScores[i]!;
+			for (let i = 0; i < allLintResults.length; i++) {
+				const lintResult = allLintResults[i];
+				const scoreEntry = allScores[i];
+				if (!lintResult || !scoreEntry) continue;
+				const { name, qualityScore } = scoreEntry;
 				const elapsed = performance.now() - start;
 
 				if (opts.format === 'json') {
