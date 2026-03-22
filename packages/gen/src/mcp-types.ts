@@ -1,3 +1,5 @@
+import type { Diagnostic } from '@skill-tools/core';
+
 /**
  * MCP (Model Context Protocol) intermediate representation types.
  *
@@ -128,4 +130,6 @@ export interface McpGenerateResult {
 	readonly groupCount: number;
 	/** Total estimated tokens */
 	readonly tokenCount: number;
+	/** Validation diagnostics from parsing generated SKILL.md files */
+	readonly diagnostics: readonly Diagnostic[];
 }

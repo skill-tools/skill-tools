@@ -2,7 +2,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { Command } from 'commander';
+import { checkGeneratedFiles } from './check.js';
 import { generateFromMcp, generateFromOpenApi, generateFromText } from './generator.js';
+import { analyzeSkill } from './improve.js';
 import type { McpConnectionOptions, McpGenerateOptions } from './mcp-types.js';
 import type { GenerateOptions } from './types.js';
 
@@ -24,6 +26,8 @@ program
 	.option('--no-examples', 'Exclude example requests/responses')
 	.option('--no-error-handling', 'Exclude error handling section')
 	.option('-d, --description <desc>', 'Custom description override')
+	.option('--check', 'Run lint + score on generated files before writing')
+	.option('--min-score <n>', 'Minimum quality score (implies --check)')
 	.action(async (specPath: string, opts: Record<string, unknown>) => {
 		const maxTokens = Number(opts.maxTokens);
 		if (Number.isNaN(maxTokens) || maxTokens < 0) {
@@ -48,6 +52,31 @@ program
 			console.error(`Error: ${result.error}`);
 			process.exitCode = 1;
 			return;
+		}
+
+		const shouldCheck = opts.check || opts.minScore;
+		if (shouldCheck) {
+			const minScore = opts.minScore ? Number(opts.minScore) : 0;
+			const checkResult = checkGeneratedFiles(result.files, minScore);
+
+			// Print scores
+			for (const { name, score: qs } of checkResult.scores) {
+				console.log(`  ${name}: ${qs.score}/100`);
+			}
+
+			// Print lint issues
+			for (const lr of checkResult.lintResults) {
+				if (lr.errorCount > 0 || lr.warningCount > 0) {
+					console.log(`  Lint: ${lr.errorCount} errors, ${lr.warningCount} warnings`);
+				}
+			}
+
+			if (!checkResult.meetsThreshold) {
+				console.error(`\nFailed: score below minimum threshold (${minScore}). Files not written.`);
+				process.exitCode = 1;
+				return;
+			}
+			console.log('');
 		}
 
 		const outDir = resolve(options.outDir ?? '.');
@@ -81,8 +110,35 @@ program
 	.argument('<description>', 'Skill description')
 	.option('-o, --out <dir>', 'Output directory', '.')
 	.option('-i, --instructions <text>', 'Additional instructions to include')
+	.option('--check', 'Run lint + score on generated files before writing')
+	.option('--min-score <n>', 'Minimum quality score (implies --check)')
 	.action(async (name: string, description: string, opts: Record<string, unknown>) => {
 		const result = generateFromText(name, description, opts.instructions as string | undefined);
+
+		const shouldCheck = opts.check || opts.minScore;
+		if (shouldCheck) {
+			const minScore = opts.minScore ? Number(opts.minScore) : 0;
+			const checkResult = checkGeneratedFiles(result.files, minScore);
+
+			// Print scores
+			for (const { name: skillName, score: qs } of checkResult.scores) {
+				console.log(`  ${skillName}: ${qs.score}/100`);
+			}
+
+			// Print lint issues
+			for (const lr of checkResult.lintResults) {
+				if (lr.errorCount > 0 || lr.warningCount > 0) {
+					console.log(`  Lint: ${lr.errorCount} errors, ${lr.warningCount} warnings`);
+				}
+			}
+
+			if (!checkResult.meetsThreshold) {
+				console.error(`\nFailed: score below minimum threshold (${minScore}). Files not written.`);
+				process.exitCode = 1;
+				return;
+			}
+			console.log('');
+		}
 
 		const outDir = resolve((opts.out as string) ?? '.');
 
@@ -111,6 +167,8 @@ program
 	.option('--timeout <ms>', 'Connection timeout in milliseconds', '30000')
 	.option('--no-tool-reference', 'Skip generating references/TOOLS.md')
 	.option('-d, --description <desc>', 'Custom description override')
+	.option('--check', 'Run lint + score on generated files before writing')
+	.option('--min-score <n>', 'Minimum quality score (implies --check)')
 	.action(async (server: string | undefined, opts: Record<string, unknown>) => {
 		const command = opts.command as string | undefined;
 		const url = opts.url as string | undefined;
@@ -180,6 +238,31 @@ program
 			return;
 		}
 
+		const shouldCheck = opts.check || opts.minScore;
+		if (shouldCheck) {
+			const minScore = opts.minScore ? Number(opts.minScore) : 0;
+			const checkResult = checkGeneratedFiles(result.files, minScore);
+
+			// Print scores
+			for (const { name, score: qs } of checkResult.scores) {
+				console.log(`  ${name}: ${qs.score}/100`);
+			}
+
+			// Print lint issues
+			for (const lr of checkResult.lintResults) {
+				if (lr.errorCount > 0 || lr.warningCount > 0) {
+					console.log(`  Lint: ${lr.errorCount} errors, ${lr.warningCount} warnings`);
+				}
+			}
+
+			if (!checkResult.meetsThreshold) {
+				console.error(`\nFailed: score below minimum threshold (${minScore}). Files not written.`);
+				process.exitCode = 1;
+				return;
+			}
+			console.log('');
+		}
+
 		const outDir = resolve(generateOptions.outDir ?? '.');
 		let written = 0;
 
@@ -203,6 +286,47 @@ program
 				`Warning: Generated content exceeds token budget (${result.tokenCount} > ${maxTokens}).`,
 			);
 		}
+	});
+
+program
+	.command('improve')
+	.description('Analyze existing SKILL.md files and suggest quality improvements')
+	.argument('<path>', 'Path to SKILL.md file or skill directory')
+	.option('-f, --format <format>', 'Output format: text or json', 'text')
+	.action(async (path: string, opts: { format: string }) => {
+		const results = await analyzeSkill(resolve(path));
+
+		if (results.length === 0) {
+			console.error('No valid skills found to analyze');
+			process.exitCode = 1;
+			return;
+		}
+
+		if (opts.format === 'json') {
+			console.log(JSON.stringify(results, null, 2));
+			return;
+		}
+
+		for (const result of results) {
+			console.log(`\n  ${result.name}  ${result.currentScore.score}/100`);
+			console.log(`  ${result.filePath}`);
+
+			if (result.suggestions.length === 0) {
+				console.log('  No improvements suggested.');
+				continue;
+			}
+
+			console.log('');
+			for (let i = 0; i < Math.min(10, result.suggestions.length); i++) {
+				const s = result.suggestions[i]!;
+				const source = s.source === 'lint' ? '[lint]' : '[score]';
+				console.log(`  ${i + 1}. ${source} ${s.message}  +${s.pointsGain} pts`);
+				if (s.fix) {
+					console.log(`     → ${s.fix}`);
+				}
+			}
+		}
+		console.log('');
 	});
 
 /**

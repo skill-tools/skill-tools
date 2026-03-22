@@ -1,6 +1,6 @@
 {
 	"name": "@skill-tools/gen",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Generate Agent Skills (SKILL.md) from OpenAPI specs, MCP servers, REST APIs, and text descriptions",
 	"type": "module",
 	"license": "Apache-2.0",
@@ -61,6 +61,7 @@
 	"dependencies": {
 		"@skill-tools/core": "workspace:*",
 		"commander": "^13.1.0",
+		"skill-tools": "workspace:*",
 		"yaml": "^2.7.0"
 	},
 	"peerDependencies": {

@@ -38,10 +38,18 @@ const results = await router.select('deploy my app to production');
 
 | Export | Description |
 |--------|-------------|
-| `SkillRouter` | Main router — `indexSkills()`, `select()`, `detectConflicts()`, `save()`/`load()` |
+| `SkillRouter` | Main router — `indexSkills()`, `indexDirectory()`, `select()`, `detectConflicts()`, `save()`/`load()`, `fromSnapshot()` |
 | `BM25Index` | Standalone BM25 engine (used internally, also exported for direct use) |
-| `LocalEmbeddingProvider` | TF-IDF embedding provider (legacy, for custom vector store workflows) |
+| `extractContext` | TF-IDF context extractor — enriches skill descriptions with body/section terms |
+| `LocalEmbeddingProvider` | TF-IDF embedding provider (for custom vector store workflows) |
 | `MemoryVectorStore` | In-memory cosine-similarity vector store |
+
+## Performance
+
+- Designed for catalogs up to ~10,000 skills
+- Index build: O(n * avg_doc_len)
+- Query: O(q * avg_posting_len) — sparse, only visits docs with query terms
+- Query latency: <5ms for typical catalogs
 
 ## BM25 Parameters
 

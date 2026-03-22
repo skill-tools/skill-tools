@@ -19,6 +19,12 @@ Deploy your web application to Vercel with zero configuration.
 2. Follow the prompts to link your project
 3. Verify deployment at the provided URL
 
+## Example
+
+```bash
+vercel --prod
+```
+
 ## Error Handling
 
 - **Authentication failed**: Run `vercel login` again

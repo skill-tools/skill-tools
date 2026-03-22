@@ -1,3 +1,5 @@
+import type { Diagnostic } from '@skill-tools/core';
+
 /**
  * Configuration for generating a SKILL.md file.
  */
@@ -152,6 +154,8 @@ export interface GenerateResult {
 	readonly endpointCount: number;
 	/** Estimated token count of generated content */
 	readonly tokenCount: number;
+	/** Validation diagnostics from parsing generated SKILL.md files */
+	readonly diagnostics: readonly Diagnostic[];
 }
 
 /**

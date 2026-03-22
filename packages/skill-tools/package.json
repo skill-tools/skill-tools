@@ -1,6 +1,6 @@
 {
   "name": "skill-tools",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Validate, lint, and score Agent Skills (SKILL.md) files",
   "type": "module",
   "bin": {
@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@skill-tools/core": "workspace:*",
+    "@skill-tools/router": "workspace:*",
     "commander": "^13.1.0"
   },
   "devDependencies": {
