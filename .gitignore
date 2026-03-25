@@ -39,3 +39,7 @@ CLAUDE.md
 # Demo temp files
 .anthropic-skills-clone/
 .demo-clones/
+.dev-session/
+
+# Staff-engineer plugin state
+.staff-engineer*.json

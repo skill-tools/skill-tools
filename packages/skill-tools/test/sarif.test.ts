@@ -1,7 +1,8 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { audit } from '../src/audit.js';
 import { lint } from '../src/linter.js';
-import { toSarif } from '../src/sarif.js';
+import { auditToSarif, toSarif } from '../src/sarif.js';
 import { validate } from '../src/validator.js';
 
 const FIXTURES = resolve(import.meta.dirname, 'fixtures');
@@ -46,5 +47,16 @@ describe('toSarif', () => {
 			expect(result.locations).toHaveLength(1);
 			expect(result.locations[0]!.physicalLocation.artifactLocation.uri).toBeTruthy();
 		}
+	});
+
+	it('converts contract audit findings into SARIF', async () => {
+		const auditResult = await audit(resolve(FIXTURES, 'contract-skill-bad'), {
+			adapter: 'bap',
+			evidencePath: resolve(FIXTURES, 'contract-skill/bap-evidence.json'),
+		});
+
+		const sarif = auditToSarif([auditResult]);
+		expect(sarif.runs[0]!.results.length).toBeGreaterThan(0);
+		expect(sarif.runs[0]!.results[0]!.ruleId.startsWith('contract-')).toBe(true);
 	});
 });

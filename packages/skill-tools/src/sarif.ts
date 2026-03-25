@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import type { ContractAuditResult } from '@skill-tools/contracts';
 import type { Diagnostic } from '@skill-tools/core';
 import type { LintResult } from './linter.js';
 import type { ValidationResult } from './validator.js';
@@ -88,6 +89,45 @@ export function toSarif(
 	for (const lr of lintResults) {
 		for (const diag of lr.diagnostics) {
 			results.push(diagnosticToSarifResult(diag, lr.filePath));
+			ruleIds.add(diag.ruleId);
+		}
+	}
+
+	const rules = Array.from(ruleIds).map((id) => ({
+		id,
+		shortDescription: { text: id },
+	}));
+
+	return {
+		$schema:
+			'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json',
+		version: '2.1.0',
+		runs: [
+			{
+				tool: {
+					driver: {
+						name: 'skill-tools',
+						version: pkgVersion,
+						informationUri: 'https://github.com/skill-tools/skill-tools',
+						rules,
+					},
+				},
+				results,
+			},
+		],
+	};
+}
+
+/**
+ * Convert contract audit results to a SARIF 2.1.0 report.
+ */
+export function auditToSarif(auditResults: readonly ContractAuditResult[]): SarifReport {
+	const results: SarifResult[] = [];
+	const ruleIds = new Set<string>();
+
+	for (const auditResult of auditResults) {
+		for (const diag of auditResult.diagnostics) {
+			results.push(diagnosticToSarifResult(diag, auditResult.filePath));
 			ruleIds.add(diag.ruleId);
 		}
 	}

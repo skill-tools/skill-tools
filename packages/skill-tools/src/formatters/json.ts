@@ -1,3 +1,4 @@
+import type { ContractAuditResult } from '@skill-tools/contracts';
 import type { QualityScore } from '@skill-tools/core';
 import type { LintResult } from '../linter.js';
 import type { ValidationResult } from '../validator.js';
@@ -46,6 +47,27 @@ export function formatScoreJson(name: string, qualityScore: QualityScore): strin
 			score: qualityScore.score,
 			dimensions: qualityScore.dimensions,
 			suggestions: qualityScore.suggestions,
+		},
+		null,
+		2,
+	);
+}
+
+/**
+ * Format a contract audit result as JSON.
+ */
+export function formatAuditJson(result: ContractAuditResult): string {
+	return JSON.stringify(
+		{
+			filePath: result.filePath,
+			name: result.name,
+			adapter: result.adapter,
+			valid: result.valid,
+			errorCount: result.errorCount,
+			warningCount: result.warningCount,
+			infoCount: result.infoCount,
+			diagnostics: result.diagnostics,
+			evidence: result.evidence,
 		},
 		null,
 		2,

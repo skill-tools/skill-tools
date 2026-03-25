@@ -204,6 +204,36 @@ Body.
 		expect(result.skill.metadata['custom-field']).toBe('custom-value');
 	});
 
+	it('preserves contract metadata as raw frontmatter data', () => {
+		const content = `---
+name: my-skill
+description: A skill
+contract:
+  kind: browser-agent
+  version: 1
+  runtime:
+    tools:
+      - navigate
+  provenance: {}
+  grounding: {}
+---
+
+Body.
+`;
+		const result = parseSkillContent(content, '/fake/SKILL.md', '/fake');
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+
+		expect(result.skill.metadata.contract).toEqual({
+			kind: 'browser-agent',
+			version: 1,
+			runtime: { tools: ['navigate'] },
+			provenance: {},
+			grounding: {},
+		});
+	});
+
 	it('errors for missing name', () => {
 		const content = `---
 description: A skill without a name

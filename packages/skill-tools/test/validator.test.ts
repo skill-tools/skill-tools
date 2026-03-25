@@ -35,4 +35,17 @@ describe('validate', () => {
 
 		expect(results.length).toBeGreaterThanOrEqual(3);
 	});
+
+	it('includes contract diagnostics without changing core validation success semantics', async () => {
+		const results = await validate(resolve(FIXTURES, 'contract-skill-bad'));
+
+		expect(results).toHaveLength(1);
+		expect(results[0]?.valid).toBe(true);
+		expect(
+			results[0]?.diagnostics.some((diag) => diag.ruleId === 'contract-risky-actions-approval'),
+		).toBe(true);
+		expect(
+			results[0]?.diagnostics.some((diag) => diag.ruleId === 'contract-allowed-tools-mismatch'),
+		).toBe(true);
+	});
 });

@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { validateContract } from '@skill-tools/contracts';
 import type { Diagnostic, Skill } from '@skill-tools/core';
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 
@@ -54,7 +55,9 @@ export async function validate(path: string): Promise<ValidationResult[]> {
 
 	for (const location of locations) {
 		const parseResult = await parseSkill(location.skillFile);
-		const extraDiagnostics = parseResult.ok ? validateStructure(parseResult.skill) : [];
+		const extraDiagnostics = parseResult.ok
+			? [...validateStructure(parseResult.skill), ...validateContract(parseResult.skill)]
+			: [];
 
 		const allDiagnostics = [...parseResult.diagnostics, ...extraDiagnostics];
 		const hasErrors = allDiagnostics.some((d) => d.severity === 'error');
