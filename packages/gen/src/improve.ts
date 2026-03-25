@@ -1,7 +1,7 @@
-import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 import type { QualityScore } from '@skill-tools/core';
-import { lint, score } from 'skill-tools';
+import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 import type { LintResult } from 'skill-tools';
+import { lint, score } from 'skill-tools';
 
 export interface ImproveResult {
 	readonly name: string;

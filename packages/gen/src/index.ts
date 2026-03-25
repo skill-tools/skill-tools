@@ -7,6 +7,8 @@
  * @packageDocumentation
  */
 
+export type { CheckResult } from './check.js';
+export { checkGeneratedFiles } from './check.js';
 export {
 	generateFromMcp,
 	generateFromMcpSpec,
@@ -14,6 +16,8 @@ export {
 	generateFromSpec,
 	generateFromText,
 } from './generator.js';
+export type { ImprovedSuggestion, ImproveResult } from './improve.js';
+export { analyzeSkill } from './improve.js';
 export { clusterTools, introspectMcpServer, parseMcpToolsJson } from './mcp.js';
 export { renderMcpSkillMd } from './mcp-renderer.js';
 export type {
@@ -41,7 +45,3 @@ export type {
 	GenerateOptions,
 	GenerateResult,
 } from './types.js';
-export { checkGeneratedFiles } from './check.js';
-export type { CheckResult } from './check.js';
-export { analyzeSkill } from './improve.js';
-export type { ImproveResult, ImprovedSuggestion } from './improve.js';

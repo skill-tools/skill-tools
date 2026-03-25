@@ -1,7 +1,7 @@
-import { type Diagnostic, parseSkillContent } from '@skill-tools/core';
-import { lint, score } from 'skill-tools';
-import type { LintResult } from 'skill-tools';
 import type { QualityScore } from '@skill-tools/core';
+import { type Diagnostic, parseSkillContent } from '@skill-tools/core';
+import type { LintResult } from 'skill-tools';
+import { lint, score } from 'skill-tools';
 
 export interface CheckResult {
 	readonly diagnostics: readonly Diagnostic[];
