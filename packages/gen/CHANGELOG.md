@@ -1,5 +1,12 @@
 # @skill-tools/gen
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`7789694`](https://github.com/skill-tools/skill-tools/commit/77896944b354a30c780f61dc251bf3eeb00ac9eb)]:
+  - skill-tools@0.4.0
+
 ## 0.4.0
 
 ### Minor Changes
