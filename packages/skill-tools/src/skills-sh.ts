@@ -50,9 +50,10 @@ export function normalizeSkillsShEntries(
 	for (const raw of rawEntries) {
 		const href = normalizeSkillsShUrl(raw.href, baseUrl);
 		const githubUrl = normalizeUrl(raw.githubUrl);
-		const repo = normalizeRepositoryReference(raw.repo)
-			?? normalizeRepositoryReference(githubUrl)
-			?? deriveRepositoryFromHref(href);
+		const repo =
+			normalizeRepositoryReference(raw.repo) ??
+			normalizeRepositoryReference(githubUrl) ??
+			deriveRepositoryFromHref(href);
 		const rank = parseRank(raw.rank);
 		const skillSlug = deriveSkillSlug(href);
 		const name = normalizeText(raw.name) ?? skillSlug;
@@ -114,9 +115,7 @@ export function groupSkillsShRepositories(
 			const sortedEntries = [...repoEntries].sort(compareSkillsShEntries);
 			const [owner, repository] = repo.split('/');
 			const skills = Array.from(
-				new Set(
-					sortedEntries.map((entry) => entry.skillSlug ?? slugifySkillName(entry.name)),
-				),
+				new Set(sortedEntries.map((entry) => entry.skillSlug ?? slugifySkillName(entry.name))),
 			).sort();
 			const bestRank = sortedEntries.reduce<number | null>((best, entry) => {
 				if (entry.rank === null) return best;

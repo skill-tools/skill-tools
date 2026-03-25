@@ -1,0 +1,24 @@
+{
+	"adapter": "bap",
+	"version": 1,
+	"runtime": {
+		"interfaces": ["cli"],
+		"tools": ["navigate", "observe", "act", "extract"],
+		"actions": ["navigate", "observe", "extract"],
+		"domains": ["example.com"],
+		"artifacts": ["trace-ndjson", "screenshot"]
+	},
+	"provenance": {
+		"formats": ["bap-contract-evidence", "trace-ndjson"],
+		"replaySupported": true,
+		"determinism": "best-effort",
+		"validator": "bap trace --export-evidence"
+	},
+	"grounding": {
+		"observationModels": ["interactive-elements"],
+		"identityMechanisms": ["stable-ref"],
+		"stableRefs": true,
+		"abstentionSupported": true,
+		"ambiguityPolicy": "abstain"
+	}
+}

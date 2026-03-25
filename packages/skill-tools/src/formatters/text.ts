@@ -1,3 +1,4 @@
+import type { ContractAuditResult } from '@skill-tools/contracts';
 import type { Diagnostic, QualityScore } from '@skill-tools/core';
 import type { LintResult } from '../linter.js';
 import type { ValidationResult } from '../validator.js';
@@ -241,7 +242,12 @@ export function formatValidation(results: ValidationResult[], elapsedMs?: number
 
 		// Build a map of failed checks
 		const failedChecks = new Map<string, Diagnostic[]>();
+		const contractDiagnostics: Diagnostic[] = [];
 		for (const diag of result.diagnostics) {
+			if (diag.ruleId.startsWith('contract-')) {
+				contractDiagnostics.push(diag);
+				continue;
+			}
 			if (!failedChecks.has(diag.ruleId)) {
 				failedChecks.set(diag.ruleId, []);
 			}
@@ -297,16 +303,43 @@ export function formatValidation(results: ValidationResult[], elapsedMs?: number
 			}
 		}
 
+		if (contractDiagnostics.length > 0) {
+			lines.push('');
+			lines.push(`  ${BOLD}Contract Diagnostics${RESET}`);
+			for (const diag of contractDiagnostics) {
+				lines.push(`  ${severityIcon(diag.severity)}  ${diag.message}`);
+				if (diag.fix) {
+					lines.push(`     ${DIM}\u2192 ${diag.fix}${RESET}`);
+				}
+			}
+		}
+
 		lines.push(`  ${RULE}`);
 
 		// Summary
 		const total = passCount + failCount;
-		if (failCount === 0) {
-			lines.push(`  ${GREEN}All ${total} checks passed${RESET}`);
+		const contractIssueCount = contractDiagnostics.filter(
+			(d) => d.severity === 'error' || d.severity === 'warning',
+		).length;
+		if (failCount === 0 && contractIssueCount === 0) {
+			const suffix =
+				contractDiagnostics.length > 0
+					? `  ${DIM}(+ ${contractDiagnostics.length} contract diagnostic${contractDiagnostics.length === 1 ? '' : 's'})${RESET}`
+					: '';
+			lines.push(`  ${GREEN}All ${total} checks passed${RESET}${suffix}`);
+		} else if (failCount === 0 && contractIssueCount > 0) {
+			lines.push(
+				`  ${YELLOW}All ${total} checks passed, but ${contractIssueCount} contract issue${contractIssueCount === 1 ? '' : 's'} found${RESET}`,
+			);
 		} else {
 			const parts = [`${BOLD}${total}${RESET} checks`];
 			if (passCount > 0) parts.push(`${GREEN}${passCount} passed${RESET}`);
 			parts.push(`${RED}${failCount} failed${RESET}`);
+			if (contractDiagnostics.length > 0) {
+				parts.push(
+					`${YELLOW}${contractDiagnostics.length} contract diagnostic${contractDiagnostics.length === 1 ? '' : 's'}${RESET}`,
+				);
+			}
 			lines.push(`  ${parts.join(`  ${DIM}\u2502${RESET}  `)}`);
 		}
 	}
@@ -415,4 +448,53 @@ function scoreToStars(score: number): string {
 		score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
 	const empty = 5 - filled;
 	return `${YELLOW}${'★'.repeat(filled)}${DIM}${'☆'.repeat(empty)}${RESET}`;
+}
+
+/**
+ * Format a single contract audit result as human-readable text.
+ */
+export function formatAudit(result: ContractAuditResult, elapsedMs?: number): string {
+	const lines: string[] = [];
+	const badge = result.valid
+		? `${GREEN_BG}${WHITE}${BOLD} PASS ${RESET}`
+		: `${RED_BG}${WHITE}${BOLD} FAIL ${RESET}`;
+
+	lines.push('');
+	lines.push(`  ${BOLD}${result.name}${RESET}  ${badge}`);
+	lines.push(`  ${DIM}${result.filePath}${RESET}`);
+	lines.push(`  ${DIM}adapter: ${result.adapter}${RESET}`);
+	lines.push(`  ${RULE}`);
+
+	if (result.diagnostics.length === 0) {
+		lines.push(`  ${PASS}  Observed evidence matches the declared contract`);
+	} else {
+		for (const diag of result.diagnostics) {
+			lines.push(`  ${severityIcon(diag.severity)}  ${diag.message}`);
+		}
+	}
+
+	lines.push(`  ${RULE}`);
+	const parts = [];
+	if (result.errorCount > 0) {
+		parts.push(`${RED}${result.errorCount} error${result.errorCount === 1 ? '' : 's'}${RESET}`);
+	}
+	if (result.warningCount > 0) {
+		parts.push(
+			`${YELLOW}${result.warningCount} warning${result.warningCount === 1 ? '' : 's'}${RESET}`,
+		);
+	}
+	if (result.infoCount > 0) {
+		parts.push(`${CYAN}${result.infoCount} info${RESET}`);
+	}
+	if (parts.length === 0) {
+		parts.push(`${GREEN}0 findings${RESET}`);
+	}
+	lines.push(`  ${parts.join(`  ${DIM}\u2502${RESET}  `)}`);
+
+	if (elapsedMs != null) {
+		lines.push(`  ${DIM}${elapsedMs.toFixed(1)}ms${RESET}`);
+	}
+
+	lines.push('');
+	return lines.join('\n');
 }

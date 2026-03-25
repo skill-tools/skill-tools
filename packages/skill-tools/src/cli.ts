@@ -3,14 +3,20 @@ import { join, resolve } from 'node:path';
 import { parseSkill, resolveSkillFiles } from '@skill-tools/core';
 import { SkillRouter } from '@skill-tools/router';
 import { Command } from 'commander';
-import { formatLintJson, formatScoreJson, formatValidationJson } from './formatters/json.js';
+import { audit, parseAuditAdapter } from './audit.js';
+import {
+	formatAuditJson,
+	formatLintJson,
+	formatScoreJson,
+	formatValidationJson,
+} from './formatters/json.js';
 import { formatConflictsJson, formatRouteJson } from './formatters/route-json.js';
 import { formatConflicts, formatRouteResults } from './formatters/route-text.js';
-import { formatLint, formatScore, formatValidation } from './formatters/text.js';
+import { formatAudit, formatLint, formatScore, formatValidation } from './formatters/text.js';
 import { formatWatchResult } from './formatters/watch-text.js';
 import { installPreCommitHook } from './hooks.js';
 import { lint } from './linter.js';
-import { toSarif } from './sarif.js';
+import { auditToSarif, toSarif } from './sarif.js';
 import { score } from './scorer/index.js';
 import { validate } from './validator.js';
 import { watchSkills } from './watcher.js';
@@ -21,6 +27,52 @@ program
 	.name('skill-tools')
 	.description('Validate, lint, and score Agent Skills (SKILL.md) files')
 	.version('0.2.2');
+
+// --- audit command ---
+
+program
+	.command('audit')
+	.description('Compare a declared browser-agent contract against runtime evidence')
+	.argument('<path>', 'Path to a single SKILL.md file or skill directory')
+	.requiredOption('--adapter <adapter>', 'Evidence adapter: bap, dbar, or useid')
+	.requiredOption('--evidence <file>', 'Path to evidence JSON file')
+	.option('-f, --format <format>', 'Output format: text, json, or sarif', 'text')
+	.option(
+		'--fail-on <severity>',
+		'Fail if any audit diagnostic has this severity or higher: error, warning, info',
+		'error',
+	)
+	.action(
+		async (
+			path: string,
+			opts: { adapter: string; evidence: string; format: string; failOn: string },
+		) => {
+			try {
+				const start = performance.now();
+				const adapter = parseAuditAdapter(opts.adapter);
+				const result = await audit(path, {
+					adapter,
+					evidencePath: opts.evidence,
+				});
+				const elapsed = performance.now() - start;
+
+				if (opts.format === 'sarif') {
+					console.log(JSON.stringify(auditToSarif([result]), null, 2));
+				} else if (opts.format === 'json') {
+					console.log(formatAuditJson(result));
+				} else {
+					console.log(formatAudit(result, elapsed));
+				}
+
+				const failSeverities = getFailSeverities(opts.failOn);
+				const hasFails = result.diagnostics.some((diag) => failSeverities.has(diag.severity));
+				process.exitCode = hasFails ? 1 : 0;
+			} catch (error) {
+				console.error(error instanceof Error ? error.message : String(error));
+				process.exitCode = 1;
+			}
+		},
+	);
 
 // --- validate command ---
 
