@@ -1,5 +1,11 @@
 # skill-tools
 
+## 0.4.0
+
+### Minor Changes
+
+- [#12](https://github.com/skill-tools/skill-tools/pull/12) [`7789694`](https://github.com/skill-tools/skill-tools/commit/77896944b354a30c780f61dc251bf3eeb00ac9eb) Thanks [@pyyush](https://github.com/pyyush)! - Add `skill-tools audit` command for contract schema validation with BAP, DBAR, and UseID adapters. New @skill-tools/contracts package at 0.1.0.
+
 ## 0.3.0
 
 ### Minor Changes
