@@ -1,5 +1,12 @@
 # skill-tools
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`1533c4e`](https://github.com/skill-tools/skill-tools/commit/1533c4ec42d330edb7383325398fc4b89eaf15b7)]:
+  - @skill-tools/contracts@0.1.1
+
 ## 0.4.0
 
 ### Minor Changes

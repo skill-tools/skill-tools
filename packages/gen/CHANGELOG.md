@@ -1,5 +1,12 @@
 # @skill-tools/gen
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - skill-tools@0.4.1
+
 ## 0.4.1
 
 ### Patch Changes
