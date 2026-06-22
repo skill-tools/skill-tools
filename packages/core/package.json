@@ -47,7 +47,7 @@
     "url": "https://github.com/skill-tools/skill-tools",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/core",
+  "homepage": "https://github.com/skill-tools/skill-tools/tree/pre-release/packages/core",
   "bugs": {
     "url": "https://github.com/skill-tools/skill-tools/issues"
   },

@@ -10,7 +10,7 @@
 		"url": "https://github.com/skill-tools/skill-tools",
 		"directory": "packages/gen"
 	},
-	"homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/gen",
+	"homepage": "https://github.com/skill-tools/skill-tools/tree/pre-release/packages/gen",
 	"bugs": {
 		"url": "https://github.com/skill-tools/skill-tools/issues"
 	},

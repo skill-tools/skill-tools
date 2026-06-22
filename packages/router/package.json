@@ -48,7 +48,7 @@
     "url": "https://github.com/skill-tools/skill-tools",
     "directory": "packages/router"
   },
-  "homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/router",
+  "homepage": "https://github.com/skill-tools/skill-tools/tree/pre-release/packages/router",
   "bugs": {
     "url": "https://github.com/skill-tools/skill-tools/issues"
   },
