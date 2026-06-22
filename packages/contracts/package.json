@@ -47,7 +47,7 @@
 		"url": "https://github.com/skill-tools/skill-tools",
 		"directory": "packages/contracts"
 	},
-	"homepage": "https://github.com/skill-tools/skill-tools/tree/main/packages/contracts",
+	"homepage": "https://github.com/skill-tools/skill-tools/tree/pre-release/packages/contracts",
 	"bugs": {
 		"url": "https://github.com/skill-tools/skill-tools/issues"
 	},
